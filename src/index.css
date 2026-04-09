@@ -154,10 +154,13 @@ button {
 }
 
 @keyframes pulseDot {
-  0%, 100% {
+
+  0%,
+  100% {
     opacity: 1;
     transform: scale(1);
   }
+
   50% {
     opacity: 0.45;
     transform: scale(1.55);
@@ -169,6 +172,7 @@ button {
     opacity: 0;
     transform: translateY(16px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -180,6 +184,7 @@ button {
     opacity: 0;
     transform: translateX(-14px);
   }
+
   to {
     opacity: 1;
     transform: translateX(0);
@@ -690,7 +695,7 @@ button {
   gap: 14px;
 }
 
-.hero-signal-grid > div {
+.hero-signal-grid>div {
   padding: 18px;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
@@ -1525,6 +1530,7 @@ button {
 }
 
 @media (max-width: 1100px) {
+
   .metric-grid,
   .dashboard-card-grid,
   .explore-grid {
@@ -1585,6 +1591,7 @@ button {
 }
 
 @media (max-width: 680px) {
+
   .metric-grid,
   .dashboard-card-grid,
   .explore-grid {
@@ -1678,5 +1685,3 @@ button {
   border-color: rgba(255, 122, 0, 0.3);
   transform: translateX(4px);
 }
-
-

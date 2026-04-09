@@ -490,9 +490,9 @@ function App() {
 
   const currentMeta = selectedPlace
     ? {
-        title: selectedPlace.name,
-        subtitle: "Live venue detail, smart averaging, and realtime report feedback.",
-      }
+      title: selectedPlace.name,
+      subtitle: "Live venue detail, smart averaging, and realtime report feedback.",
+    }
     : TAB_META[activeTab];
 
   return (
@@ -527,7 +527,7 @@ function App() {
               </div>
             </div>
 
-            <div className="nav-actions" style={{display: 'flex', alignItems: 'center', gap: '16px', flex: 1, justifyContent: 'flex-end', marginLeft: '20px'}}>
+            <div className="nav-actions" style={{ display: 'flex', alignItems: 'center', gap: '16px', flex: 1, justifyContent: 'flex-end', marginLeft: '20px' }}>
               <SearchBar onImportPlace={handleImportPlace} importing={importing} onTabChange={setActiveTab} />
               <div className="live-pill">
                 <span className="status-dot" />

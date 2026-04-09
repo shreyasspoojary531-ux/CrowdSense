@@ -57,14 +57,14 @@ export function SearchBar({ onImportPlace, importing, onTabChange }) {
 
   const suggestionsToShow = allowCustom
     ? [
-        ...filteredSuggestions,
-        {
-          name: query.trim(),
-          type: customType,
-          location: "Custom import",
-          custom: true,
-        },
-      ]
+      ...filteredSuggestions,
+      {
+        name: query.trim(),
+        type: customType,
+        location: "Custom import",
+        custom: true,
+      },
+    ]
     : filteredSuggestions;
 
   function handleSuggestionSelect(suggestion) {
