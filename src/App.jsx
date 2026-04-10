@@ -143,6 +143,47 @@ function MetricCard({ icon, label, value, tone = "default" }) {
   );
 }
 
+function TypewriterText({ words, delay = 2000, typingSpeed = 100, deletingSpeed = 50 }) {
+  const [index, setIndex] = useState(0);
+  const [subIndex, setSubIndex] = useState(0);
+  const [reverse, setReverse] = useState(false);
+  const [pause, setPause] = useState(false);
+
+  useEffect(() => {
+    if (pause) return;
+
+    if (subIndex === words[index].length + 1 && !reverse) {
+      setPause(true);
+      setTimeout(() => {
+        setReverse(true);
+        setPause(false);
+      }, delay);
+      return;
+    }
+
+    if (subIndex === 0 && reverse) {
+      setReverse(false);
+      setIndex((prev) => (prev + 1) % words.length);
+      return;
+    }
+
+    const timeout = setTimeout(() => {
+      setSubIndex((prev) => prev + (reverse ? -1 : 1));
+    }, reverse ? deletingSpeed : typingSpeed);
+
+    return () => clearTimeout(timeout);
+  }, [subIndex, index, reverse, pause, words, delay, typingSpeed, deletingSpeed]);
+
+  return (
+    <span className="typewriter-container">
+      {words[index].substring(0, subIndex)}
+      <span className="typewriter-cursor" />
+    </span>
+  );
+}
+
+
+
 function App() {
   const [selectedPlace, setSelectedPlace] = useState(null);
   const [category, setCategory] = useState("all");
@@ -162,6 +203,8 @@ function App() {
   });
   const [importing, setImporting] = useState(false);
   const [importStatus, setImportStatus] = useState("");
+
+
 
   const allPlaces = useMemo(() => [...PLACES, ...importedPlaces], [importedPlaces]);
   const crowdState = useCrowdState(allPlaces);
@@ -273,8 +316,8 @@ function App() {
           <div className="hero-copy">
             <div className="section-kicker">CrowdSense live system</div>
             <h1>
-              Crowd timing that feels
-              <span className="gradient-text"> live, branded, and production-ready.</span>
+              Your decisions shape
+              <span className="gradient-text"> Crowd in Realtime , <br /> <TypewriterText words={["Move Smarter", "See it Happen"]} /></span>
             </h1>
             <p>
               Watch live reports reshape the smart average, identify the quietest options, and move
@@ -313,6 +356,8 @@ function App() {
             </div>
           </div>
         </section>
+
+
 
         <section className="metric-grid">
           <MetricCard icon={Activity} label="Monitored places" value={allPlaces.length} tone="orange" />

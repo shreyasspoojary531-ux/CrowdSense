@@ -113,6 +113,25 @@ button {
   -webkit-text-fill-color: transparent;
 }
 
+.typewriter-container {
+  display: inline-flex;
+  align-items: center;
+}
+
+.typewriter-cursor {
+  display: inline-block;
+  width: 2px;
+  height: 0.9em;
+  background-color: var(--brand-primary);
+  margin-left: 4px;
+  animation: blink 1s step-end infinite;
+}
+
+@keyframes blink {
+  from, to { opacity: 1; }
+  50% { opacity: 0; }
+}
+
 .section-heading {
   display: flex;
   align-items: flex-start;
@@ -143,6 +162,7 @@ button {
   font-weight: 800;
   letter-spacing: 0.14em;
   text-transform: uppercase;
+  margin-bottom: 39px;
 }
 
 .status-dot,
@@ -641,13 +661,13 @@ button {
   display: grid;
   grid-template-columns: minmax(0, 1.45fr) minmax(280px, 0.8fr);
   gap: 28px;
-  padding: 28px;
+  padding: 32px 40px;
   box-shadow: var(--glass-shadow-strong);
 }
 
 .hero-copy h1 {
-  max-width: 15ch;
-  margin: 12px 0 10px;
+  max-width: 60ch;
+  margin: 16px 0 38px;
   font-family: "Poppins", sans-serif;
   font-size: clamp(2.1rem, 4vw, 3.25rem);
   line-height: 1;
@@ -655,7 +675,7 @@ button {
 
 .hero-copy p {
   max-width: 60ch;
-  margin: 0;
+  margin: 24px 0;
   color: var(--color-text-muted);
   font-size: 1rem;
   line-height: 1.7;
@@ -1702,3 +1722,5 @@ button {
   transform: scale(0.98) !important;
   transition: transform 0.1s ease !important;
 }
+
+
