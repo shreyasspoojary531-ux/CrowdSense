@@ -166,6 +166,11 @@ function App() {
   const allPlaces = useMemo(() => [...PLACES, ...importedPlaces], [importedPlaces]);
   const crowdState = useCrowdState(allPlaces);
 
+  const handleTabChange = (tabId) => {
+    setActiveTab(tabId);
+    setSelectedPlace(null);
+  };
+
   useEffect(() => {
     document.documentElement.classList.toggle("dark", darkMode);
   }, [darkMode]);
@@ -276,11 +281,11 @@ function App() {
               through places with realtime confidence.
             </p>
             <div className="hero-actions">
-              <button type="button" className="btn-primary hero-primary" onClick={() => setActiveTab("report")}>
+              <button type="button" className="btn-primary hero-primary" onClick={() => handleTabChange("report")}>
                 <PlusSquare size={16} />
                 <span>Add a live report</span>
               </button>
-              <button type="button" className="btn-secondary hero-secondary" onClick={() => setActiveTab("explore")}>
+              <button type="button" className="btn-secondary hero-secondary" onClick={() => handleTabChange("explore")}>
                 <Compass size={16} />
                 <span>Explore places</span>
               </button>
@@ -505,7 +510,7 @@ function App() {
         onImportPlace={handleImportPlace}
         importing={importing}
         activeTab={activeTab}
-        onTabChange={setActiveTab}
+        onTabChange={handleTabChange}
         liveStatus={liveStatus}
       />
 

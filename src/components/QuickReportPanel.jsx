@@ -9,6 +9,7 @@ export function QuickReportPanel({ places, crowdState, initialPlaceId, onOpenPla
   const [selectedLevel, setSelectedLevel] = useState("Medium");
   const [statusText, setStatusText] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
 
   const selectedPlace = useMemo(
     () => places.find((place) => place.id === placeId) || places[0] || null,
@@ -53,18 +54,38 @@ export function QuickReportPanel({ places, crowdState, initialPlaceId, onOpenPla
           <label className="field-label" htmlFor="quick-report-place">
             Choose a place
           </label>
-          <select
-            id="quick-report-place"
-            className="surface-select"
-            value={selectedPlace?.id || ""}
-            onChange={(event) => setPlaceId(event.target.value)}
-          >
-            {places.map((place) => (
-              <option key={place.id} value={place.id}>
-                {place.name}
-              </option>
-            ))}
-          </select>
+          <div className="custom-dropdown" style={{ position: "relative" }}>
+            <button
+              type="button"
+              className="surface-select"
+              style={{ display: "flex", justifyContent: "space-between", alignItems: "center", textAlign: "left" }}
+              onClick={() => setDropdownOpen(!dropdownOpen)}
+            >
+              <span>{selectedPlace?.name || "Select a place"}</span>
+              <ArrowRight size={16} style={{ transform: dropdownOpen ? "rotate(-90deg)" : "rotate(90deg)", transition: "transform 0.2s" }} />
+            </button>
+
+            {dropdownOpen && (
+              <div className="dropdown-items-overlay animate-fade-up">
+                {places.map((place) => (
+                  <button
+                    key={place.id}
+                    type="button"
+                    className={`dropdown-item ${placeId === place.id ? "selected" : ""}`}
+                    onClick={() => {
+                      setPlaceId(place.id);
+                      setDropdownOpen(false);
+                    }}
+                  >
+                    <div>
+                      <strong style={{ display: "block", fontSize: "0.95rem" }}>{place.name}</strong>
+                      <span style={{ fontSize: "0.8rem", opacity: 0.6 }}>{place.location}</span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
 
           <div className="report-options">
             {REPORT_OPTIONS.map((level) => (
