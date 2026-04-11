@@ -46,8 +46,12 @@ export function TimeSlider({ value, min, max, onChange, crowdAtTime }) {
         max={max}
         step={0.5}
         value={value}
-        onChange={(event) => onChange(parseFloat(event.target.value))}
         aria-label="Time travel slider"
+        aria-valuemin={min}
+        aria-valuemax={max}
+        aria-valuenow={value}
+        aria-valuetext={`Previewing ${formatHour(value)} — ${crowdAtTime?.level || "Low"} crowd, ${crowdAtTime?.wait || "< 2 min"} wait`}
+        onChange={(event) => onChange(parseFloat(event.target.value))}
       />
 
       <div className="time-scale">

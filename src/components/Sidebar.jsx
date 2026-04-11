@@ -6,44 +6,16 @@ import {
   LayoutDashboard,
   MoonStar,
   PlusSquare,
-  Search,
   SunMedium,
 } from "lucide-react";
 import { BrandLogo } from "./BrandLogo";
+import {
+  PLACE_SUGGESTIONS,
+  TYPE_LABELS,
+  inferTypeFromQuery,
+} from "../data/suggestions";
 
-const PLACE_SUGGESTIONS = [
-  { name: "Central Perk Cafe", type: "cafe", location: "5th Avenue, Midtown" },
-  { name: "Riverside Library", type: "library", location: "Riverside Blvd" },
-  { name: "Iron Temple Gym", type: "gym", location: "Market Street" },
-  { name: "Sunset Bistro", type: "restaurant", location: "Ocean Drive" },
-  { name: "Maple Mall", type: "mall", location: "Oak District" },
-  { name: "Aurora Museum", type: "museum", location: "Old Town" },
-  { name: "Greenway Park", type: "park", location: "Lakeview" },
-  { name: "The Study Nook", type: "library", location: "West End" },
-];
-
-const TYPE_LABELS = {
-  restaurant: "Restaurant",
-  gym: "Gym",
-  library: "Library",
-  cafe: "Cafe",
-  mall: "Mall",
-  park: "Park",
-  museum: "Museum",
-};
-
-function inferTypeFromQuery(query) {
-  const q = query.toLowerCase();
-  if (q.includes("gym") || q.includes("fitness")) return "gym";
-  if (q.includes("library") || q.includes("book")) return "library";
-  if (q.includes("cafe") || q.includes("coffee")) return "cafe";
-  if (q.includes("mall") || q.includes("plaza")) return "mall";
-  if (q.includes("park") || q.includes("garden")) return "park";
-  if (q.includes("museum") || q.includes("gallery")) return "museum";
-  if (q.includes("restaurant") || q.includes("diner") || q.includes("eatery")) return "restaurant";
-  return "restaurant";
-}
-
+/** Navigation items rendered in the sidebar. */
 const NAV_ITEMS = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
   { id: "report", label: "Add Report", icon: PlusSquare },
@@ -51,6 +23,15 @@ const NAV_ITEMS = [
   { id: "analytics", label: "Analytics", icon: ChartNoAxesCombined },
 ];
 
+/**
+ * Collapsible sidebar with logo, primary navigation, venue import search,
+ * live network stats, and dark-mode toggle.
+ *
+ * Accessibility:
+ * - `aria-current="page"` marks the active nav item.
+ * - The sidebar `<aside>` carries an id so the hamburger button can reference
+ *   it via `aria-controls`.
+ */
 export function Sidebar({
   darkMode,
   onToggleDark,
@@ -67,43 +48,29 @@ export function Sidebar({
   const normalizedQuery = query.trim().toLowerCase();
 
   const filteredSuggestions = useMemo(() => {
-    if (!normalizedQuery) {
-      return PLACE_SUGGESTIONS.slice(0, 5);
-    }
-
-    return PLACE_SUGGESTIONS.filter((suggestion) => {
-      const target = `${suggestion.name} ${suggestion.location} ${suggestion.type}`.toLowerCase();
+    if (!normalizedQuery) return PLACE_SUGGESTIONS.slice(0, 5);
+    return PLACE_SUGGESTIONS.filter((s) => {
+      const target = `${s.name} ${s.location} ${s.type}`.toLowerCase();
       return target.includes(normalizedQuery);
     }).slice(0, 6);
   }, [normalizedQuery]);
 
   const hasExactMatch = PLACE_SUGGESTIONS.some(
-    (suggestion) => suggestion.name.toLowerCase() === normalizedQuery
+    (s) => s.name.toLowerCase() === normalizedQuery
   );
   const allowCustom = normalizedQuery.length > 2 && !hasExactMatch;
   const customType = allowCustom ? inferTypeFromQuery(normalizedQuery) : null;
 
   const suggestionsToShow = allowCustom
     ? [
-      ...filteredSuggestions,
-      {
-        name: query.trim(),
-        type: customType,
-        location: "Custom import",
-        custom: true,
-      },
-    ]
+        ...filteredSuggestions,
+        { name: query.trim(), type: customType, location: "Custom import", custom: true },
+      ]
     : filteredSuggestions;
 
   function handleSuggestionSelect(suggestion) {
     if (!onImportPlace || importing) return;
-
-    onImportPlace({
-      name: suggestion.name,
-      type: suggestion.type,
-      location: suggestion.location,
-    });
-
+    onImportPlace({ name: suggestion.name, type: suggestion.type, location: suggestion.location });
     setQuery(suggestion.name);
     setFocused(false);
     onTabChange("explore");
@@ -111,17 +78,28 @@ export function Sidebar({
 
   return (
     <>
-      {sidebarOpen && <div className="sidebar-overlay" onClick={onClose} />}
+      {sidebarOpen && (
+        <div
+          className="sidebar-overlay"
+          onClick={onClose}
+          aria-hidden="true"
+        />
+      )}
 
-      <aside className={`sidebar ${sidebarOpen ? "open" : ""}`}>
+      <aside
+        id="app-sidebar"
+        className={`sidebar ${sidebarOpen ? "open" : ""}`}
+        aria-label="Primary navigation"
+      >
         <div className="sidebar-top">
           <BrandLogo />
-          <div className="sidebar-status-line">
-            <span className="status-dot" />
+          <div className="sidebar-status-line" aria-label={`Live mode: ${liveStatus.modeLabel}`}>
+            <span className="status-dot" aria-hidden="true" />
             <span>{liveStatus.modeLabel}</span>
           </div>
         </div>
 
+        {/* Primary navigation */}
         <nav className="sidebar-nav" aria-label="Primary">
           {NAV_ITEMS.map((item) => {
             const Icon = item.icon;
@@ -132,12 +110,13 @@ export function Sidebar({
                 key={item.id}
                 type="button"
                 className={`sidebar-item ${isActive ? "active" : ""}`}
+                aria-current={isActive ? "page" : undefined}
                 onClick={() => {
                   onTabChange(item.id);
                   onClose?.();
                 }}
               >
-                <Icon size={18} />
+                <Icon size={18} aria-hidden="true" />
                 <span className="sidebar-label">{item.label}</span>
               </button>
             );
@@ -146,13 +125,14 @@ export function Sidebar({
 
         <div className="sidebar-spacer" />
 
+        {/* Footer — live stats + dark mode toggle */}
         <div className="sidebar-footer">
-          <div className="sidebar-live-card">
+          <div className="sidebar-live-card" aria-label="Live network stats">
             <div className="sidebar-live-header">
-              <Activity size={16} />
+              <Activity size={16} aria-hidden="true" />
               <span>Live network</span>
             </div>
-            <div className="sidebar-metric-grid">
+            <dl className="sidebar-metric-grid">
               <div>
                 <strong>{liveStatus.monitoredCount}</strong>
                 <span>places</span>
@@ -161,11 +141,17 @@ export function Sidebar({
                 <strong>{liveStatus.reportCount}</strong>
                 <span>reports</span>
               </div>
-            </div>
+            </dl>
           </div>
 
-          <button type="button" className="theme-toggle" onClick={onToggleDark}>
-            <span className="theme-toggle-icon">
+          <button
+            type="button"
+            className="theme-toggle"
+            onClick={onToggleDark}
+            aria-label={darkMode ? "Switch to light mode" : "Switch to dark mode"}
+            aria-pressed={darkMode}
+          >
+            <span className="theme-toggle-icon" aria-hidden="true">
               {darkMode ? <MoonStar size={16} /> : <SunMedium size={16} />}
             </span>
             <span className="sidebar-label">{darkMode ? "Dark mode" : "Light mode"}</span>

@@ -1,115 +1,125 @@
-import React, { useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Search } from "lucide-react";
+import {
+  PLACE_SUGGESTIONS,
+  TYPE_LABELS,
+  inferTypeFromQuery,
+} from "../data/suggestions";
 
-const PLACE_SUGGESTIONS = [
-  { name: "Central Perk Cafe", type: "cafe", location: "5th Avenue, Midtown" },
-  { name: "Riverside Library", type: "library", location: "Riverside Blvd" },
-  { name: "Iron Temple Gym", type: "gym", location: "Market Street" },
-  { name: "Sunset Bistro", type: "restaurant", location: "Ocean Drive" },
-  { name: "Maple Mall", type: "mall", location: "Oak District" },
-  { name: "Aurora Museum", type: "museum", location: "Old Town" },
-  { name: "Greenway Park", type: "park", location: "Lakeview" },
-  { name: "The Study Nook", type: "library", location: "West End" },
-];
+/** Unique ID for the suggestions listbox — used to wire up ARIA combobox pattern. */
+const LISTBOX_ID = "search-suggestions-listbox";
 
-const TYPE_LABELS = {
-  restaurant: "Restaurant",
-  gym: "Gym",
-  library: "Library",
-  cafe: "Cafe",
-  mall: "Mall",
-  park: "Park",
-  museum: "Museum",
-};
-
-function inferTypeFromQuery(query) {
-  const q = query.toLowerCase();
-  if (q.includes("gym") || q.includes("fitness")) return "gym";
-  if (q.includes("library") || q.includes("book")) return "library";
-  if (q.includes("cafe") || q.includes("coffee")) return "cafe";
-  if (q.includes("mall") || q.includes("plaza")) return "mall";
-  if (q.includes("park") || q.includes("garden")) return "park";
-  if (q.includes("museum") || q.includes("gallery")) return "museum";
-  if (q.includes("restaurant") || q.includes("diner") || q.includes("eatery")) return "restaurant";
-  return "restaurant";
-}
-
+/**
+ * Top-of-page venue search bar.
+ *
+ * Implements the ARIA combobox pattern so keyboard and screen-reader users can
+ * navigate and select suggestions without a mouse.
+ *
+ * Debounces the expensive filtering work by 250 ms so rapid typing doesn't
+ * block the main thread.
+ */
 export function SearchBar({ onImportPlace, importing, onTabChange }) {
   const [query, setQuery] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
   const [focused, setFocused] = useState(false);
-  const normalizedQuery = query.trim().toLowerCase();
+  const debounceRef = useRef(null);
+
+  // Debounce the query used for filtering suggestions (250 ms).
+  useEffect(() => {
+    debounceRef.current = setTimeout(() => {
+      setDebouncedQuery(query.trim().toLowerCase());
+    }, 250);
+    return () => clearTimeout(debounceRef.current);
+  }, [query]);
 
   const filteredSuggestions = useMemo(() => {
-    if (!normalizedQuery) {
-      return PLACE_SUGGESTIONS.slice(0, 5);
-    }
-    return PLACE_SUGGESTIONS.filter((suggestion) => {
-      const target = `${suggestion.name} ${suggestion.location} ${suggestion.type}`.toLowerCase();
-      return target.includes(normalizedQuery);
+    if (!debouncedQuery) return PLACE_SUGGESTIONS.slice(0, 5);
+    return PLACE_SUGGESTIONS.filter((s) => {
+      const target = `${s.name} ${s.location} ${s.type}`.toLowerCase();
+      return target.includes(debouncedQuery);
     }).slice(0, 6);
-  }, [normalizedQuery]);
+  }, [debouncedQuery]);
 
   const hasExactMatch = PLACE_SUGGESTIONS.some(
-    (suggestion) => suggestion.name.toLowerCase() === normalizedQuery
+    (s) => s.name.toLowerCase() === debouncedQuery
   );
-  const allowCustom = normalizedQuery.length > 2 && !hasExactMatch;
-  const customType = allowCustom ? inferTypeFromQuery(normalizedQuery) : null;
+  const allowCustom = debouncedQuery.length > 2 && !hasExactMatch;
+  const customType = allowCustom ? inferTypeFromQuery(debouncedQuery) : null;
 
-  const suggestionsToShow = allowCustom
-    ? [
-      ...filteredSuggestions,
-      {
-        name: query.trim(),
-        type: customType,
-        location: "Custom import",
-        custom: true,
-      },
-    ]
-    : filteredSuggestions;
+  const suggestionsToShow = useMemo(
+    () =>
+      allowCustom
+        ? [
+            ...filteredSuggestions,
+            { name: query.trim(), type: customType, location: "Custom import", custom: true },
+          ]
+        : filteredSuggestions,
+    [allowCustom, customType, filteredSuggestions, query]
+  );
 
-  function handleSuggestionSelect(suggestion) {
-    if (!onImportPlace || importing) return;
+  const isOpen = focused && suggestionsToShow.length > 0;
 
-    onImportPlace({
-      name: suggestion.name,
-      type: suggestion.type,
-      location: suggestion.location,
-    });
-
-    setQuery("");
-    setFocused(false);
-    if (onTabChange) onTabChange("explore");
-  }
+  const handleSuggestionSelect = useCallback(
+    (suggestion) => {
+      if (!onImportPlace || importing) return;
+      onImportPlace({
+        name: suggestion.name,
+        type: suggestion.type,
+        location: suggestion.location,
+      });
+      setQuery("");
+      setDebouncedQuery("");
+      setFocused(false);
+      if (onTabChange) onTabChange("explore");
+    },
+    [importing, onImportPlace, onTabChange]
+  );
 
   return (
-    <div className="top-search-bar" style={{ position: "relative", width: "100%", maxWidth: "400px" }}>
-      <div className="search-shell">
-        <Search size={16} />
+    <div
+      className="top-search-bar"
+      style={{ position: "relative", width: "100%", maxWidth: "400px" }}
+    >
+      {/* Combobox wrapper */}
+      <div className="search-shell" role="combobox" aria-expanded={isOpen} aria-haspopup="listbox" aria-owns={LISTBOX_ID}>
+        <Search size={16} aria-hidden="true" />
         <input
           className="import-input"
-          placeholder="Search restaurants, gyms..."
+          placeholder="Search restaurants, gyms…"
           value={query}
-          onChange={(event) => setQuery(event.target.value)}
+          aria-label="Search and import a venue"
+          aria-autocomplete="list"
+          aria-controls={LISTBOX_ID}
+          onChange={(e) => setQuery(e.target.value)}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
-          onKeyDown={(event) => {
-            if (event.key === "Enter" && allowCustom && !importing) {
-              event.preventDefault();
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && allowCustom && !importing) {
+              e.preventDefault();
               handleSuggestionSelect(suggestionsToShow[suggestionsToShow.length - 1]);
             }
           }}
           disabled={importing}
         />
       </div>
-      {focused && suggestionsToShow.length > 0 && (
-        <div className="search-results-overlay">
+
+      {/* Suggestions dropdown */}
+      {isOpen && (
+        <div
+          id={LISTBOX_ID}
+          className="search-results-overlay"
+          role="listbox"
+          aria-label="Venue suggestions"
+        >
           {suggestionsToShow.map((suggestion) => (
             <button
               key={`${suggestion.name}-${suggestion.location}`}
               type="button"
+              role="option"
+              aria-selected="false"
               className="import-suggestion"
-              onMouseDown={(event) => {
-                event.preventDefault();
+              onMouseDown={(e) => {
+                e.preventDefault(); // Keep focus on input.
                 handleSuggestionSelect(suggestion);
               }}
             >

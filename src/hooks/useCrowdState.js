@@ -1,35 +1,59 @@
+/**
+ * useCrowdState — central state hook for CrowdSense.
+ *
+ * Responsibilities:
+ * - Clock tick to keep crowd values fresh every 30 minutes.
+ * - Firebase (or local) real-time report subscription.
+ * - Aggregation and blending of live reports with AI crowd predictions.
+ * - Visitor intent (commitment) tracking.
+ * - Toast notification dispatch.
+ *
+ * Returns a stable API object — all callbacks are wrapped in useCallback
+ * so child components that depend on them can be wrapped in React.memo
+ * without triggering unnecessary re-renders.
+ */
+
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { getBestTime, getCrowdAt, getPrediction, getSmartTip, formatHour } from "../utils/prediction";
+import {
+  getBestTime,
+  getCrowdAt,
+  getPrediction,
+  getSmartTip,
+  formatHour,
+  scoreToLevel,
+  scoreToWait,
+} from "../utils/prediction";
 import {
   getRealtimeModeLabel,
   publishLiveReport,
   subscribeToLiveReports,
 } from "../lib/liveReports";
 
+/** Maximum number of live reports retained per place for blending. */
 const MAX_REPORT_WINDOW = 10;
 
+/**
+ * Map crowd level labels to their numeric score equivalents.
+ * Used to compute weighted averages from text-based user reports.
+ */
 const LEVEL_TO_SCORE = {
   Low: 0.2,
   Medium: 0.54,
   High: 0.86,
 };
 
+/** Clamp a numeric value to [min, max]. */
 function clamp(value, min = 0, max = 1) {
   return Math.min(max, Math.max(min, value));
 }
 
-function scoreToLevel(score) {
-  if (score >= 0.65) return "High";
-  if (score >= 0.38) return "Medium";
-  return "Low";
-}
-
-function scoreToWait(score) {
-  if (score < 0.38) return "< 2 min";
-  if (score < 0.65) return `${Math.round(5 + score * 10)} min`;
-  return `${Math.round(15 + score * 25)} min`;
-}
-
+/**
+ * Compute a weighted, recency-biased summary from a list of crowd reports.
+ * More recent reports carry higher weight; older ones decay to 45 %.
+ *
+ * @param {object[]} reports
+ * @returns {object|null} Summary stats or null if no reports.
+ */
 function summarizeReports(reports) {
   const recent = reports.slice(0, MAX_REPORT_WINDOW);
   if (recent.length === 0) return null;
@@ -46,11 +70,11 @@ function summarizeReports(reports) {
   const averageScore = weightedSum / totalWeight;
   const newestWindow = recent.slice(0, Math.min(3, recent.length));
   const oldestWindow = recent.slice(-Math.min(3, recent.length));
-  const newestAverage =
-    newestWindow.reduce((sum, report) => sum + (LEVEL_TO_SCORE[report.level] || 0.54), 0) /
+  const newestAvg =
+    newestWindow.reduce((sum, r) => sum + (LEVEL_TO_SCORE[r.level] || 0.54), 0) /
     newestWindow.length;
-  const oldestAverage =
-    oldestWindow.reduce((sum, report) => sum + (LEVEL_TO_SCORE[report.level] || 0.54), 0) /
+  const oldestAvg =
+    oldestWindow.reduce((sum, r) => sum + (LEVEL_TO_SCORE[r.level] || 0.54), 0) /
     oldestWindow.length;
 
   return {
@@ -58,12 +82,21 @@ function summarizeReports(reports) {
     averageScore,
     percent: Math.round(averageScore * 100),
     level: scoreToLevel(averageScore),
-    trend: newestAverage - oldestAverage,
+    trend: newestAvg - oldestAvg,
     latestAtMs: recent[0].createdAtMs || 0,
     reports: recent,
   };
 }
 
+/**
+ * Blend a base prediction with real-time report signals.
+ * Signal strength scales with sample size; older reports decay via timeDecay.
+ *
+ * @param {object} baseCrowd - Output of getCrowdAt.
+ * @param {object|null} summary - Output of summarizeReports.
+ * @param {number} hourDistance - Hours between the base prediction and now.
+ * @returns {object} Merged crowd object.
+ */
 function mergeRealtimeSignals(baseCrowd, summary, hourDistance) {
   if (!summary) return { ...baseCrowd, liveSampleSize: 0, liveTrend: 0 };
 
@@ -84,6 +117,16 @@ function mergeRealtimeSignals(baseCrowd, summary, hourDistance) {
   };
 }
 
+// ─────────────────────────────────────────────────────────
+// Hook
+// ─────────────────────────────────────────────────────────
+
+/**
+ * Central crowd state hook.
+ *
+ * @param {object[]} places - All tracked places (static + imported).
+ * @returns {object} Stable crowd state API.
+ */
 export function useCrowdState(places) {
   const [clockMs, setClockMs] = useState(() => Date.now());
   const [commitments, setCommitments] = useState({});
@@ -92,79 +135,68 @@ export function useCrowdState(places) {
   const [realtimeError, setRealtimeError] = useState(null);
   const toastTimerRef = useRef(null);
 
+  // ── Clock — ticks every 30 minutes to refresh predictions ──
   useEffect(() => {
-    const interval = window.setInterval(() => {
-      setClockMs(Date.now());
-    }, 30000);
-
+    const interval = window.setInterval(() => setClockMs(Date.now()), 30_000);
     return () => window.clearInterval(interval);
   }, []);
 
+  // ── Toast ──
   const showToast = useCallback((message) => {
     setToast(message);
     window.clearTimeout(toastTimerRef.current);
     toastTimerRef.current = window.setTimeout(() => setToast(null), 3500);
   }, []);
 
-  useEffect(
-    () => () => {
-      window.clearTimeout(toastTimerRef.current);
-    },
-    []
-  );
+  // Cleanup toast timer on unmount.
+  useEffect(() => () => window.clearTimeout(toastTimerRef.current), []);
 
+  // ── Firebase / Local realtime subscription ──
   useEffect(() => {
     const unsubscribe = subscribeToLiveReports(setLiveReports, (error) => {
       setRealtimeError(error);
       showToast("Live sync paused. Realtime data will retry automatically.");
     });
-
     return () => unsubscribe?.();
   }, [showToast]);
 
-  const seed = useMemo(() => Math.floor(clockMs / 300000), [clockMs]);
+  // ── Derived values ──
+  const seed = useMemo(() => Math.floor(clockMs / 300_000), [clockMs]);
+
   const currentHour = useMemo(() => {
     const now = new Date(clockMs);
     return now.getHours() + now.getMinutes() / 60;
   }, [clockMs]);
 
+  /** Reports grouped by placeId, capped at MAX_REPORT_WINDOW. */
   const reportGroups = useMemo(() => {
     const grouped = {};
-
     liveReports.forEach((report) => {
-      if (!grouped[report.placeId]) {
-        grouped[report.placeId] = [];
-      }
-
+      if (!grouped[report.placeId]) grouped[report.placeId] = [];
       if (grouped[report.placeId].length < MAX_REPORT_WINDOW) {
         grouped[report.placeId].push(report);
       }
     });
-
     return grouped;
   }, [liveReports]);
 
+  /** Computed summary stats per place. */
   const reportSummaries = useMemo(() => {
     const summaries = {};
-
     Object.entries(reportGroups).forEach(([placeId, reports]) => {
       summaries[placeId] = summarizeReports(reports);
     });
-
     return summaries;
   }, [reportGroups]);
 
-  const reportStats = useMemo(() => {
-    const totalReports = liveReports.length;
-    const activePlaces = Object.keys(reportGroups).length;
-    const latestReport = liveReports[0] || null;
+  /** Global report count stats. */
+  const reportStats = useMemo(() => ({
+    totalReports: liveReports.length,
+    activePlaces: Object.keys(reportGroups).length,
+    latestReport: liveReports[0] || null,
+  }), [liveReports, reportGroups]);
 
-    return {
-      totalReports,
-      activePlaces,
-      latestReport,
-    };
-  }, [liveReports, reportGroups]);
+  // ── Public API callbacks — all stable via useCallback ──
 
   const getReportSummary = useCallback(
     (placeId) => reportSummaries[placeId] || null,
@@ -200,42 +232,49 @@ export function useCrowdState(places) {
       );
       const best = getBestTime(place, seed, commitments);
       const tip = getSmartTip(place, crowd, best);
-
       return { crowd, prediction, best, tip };
     },
     [commitments, currentHour, getCrowd, getReportSummary, seed]
   );
 
-  async function submitReport(placeId, level, options = {}) {
-    const matchedPlace = places.find((place) => place.id === placeId);
-    const placeName = options.placeName || matchedPlace?.name || placeId;
+  /** Submit a crowd report. Catches errors and shows a toast on failure. */
+  const submitReport = useCallback(
+    async (placeId, level, options = {}) => {
+      const matchedPlace = places.find((p) => p.id === placeId);
+      const placeName = options.placeName || matchedPlace?.name || placeId;
 
-    await publishLiveReport({ placeId, placeName, level });
-    showToast(`Live report added for ${placeName}. CrowdSense updated instantly.`);
-  }
+      try {
+        await publishLiveReport({ placeId, placeName, level });
+        showToast(`Live report added for ${placeName}. CrowdSense updated instantly.`);
+      } catch {
+        showToast("Failed to submit report. Please try again.");
+      }
+    },
+    [places, showToast]
+  );
 
-  function commitToTime(placeId, hour) {
+  /** Register visitor intent for a time slot, nudging crowd predictions. */
+  const commitToTime = useCallback((placeId, hour) => {
     const halfHour = Math.round(hour * 2) / 2;
     const key = `${placeId}_${halfHour}`;
     const othersCount = 3 + Math.floor(Math.random() * 9);
 
-    setCommitments((prev) => ({
-      ...prev,
-      [key]: (prev[key] || 0) + 1,
-    }));
-
+    setCommitments((prev) => ({ ...prev, [key]: (prev[key] || 0) + 1 }));
     return { othersCount, label: formatHour(halfHour), key };
-  }
+  }, []);
 
-  function getCommitmentCount(placeId, hour) {
-    const halfHour = Math.round(hour * 2) / 2;
-    const key = `${placeId}_${halfHour}`;
-    return commitments[key] || 0;
-  }
+  const getCommitmentCount = useCallback(
+    (placeId, hour) => {
+      const halfHour = Math.round(hour * 2) / 2;
+      return commitments[`${placeId}_${halfHour}`] || 0;
+    },
+    [commitments]
+  );
 
-  function isBecomingCrowded(placeId, hour) {
-    return getCommitmentCount(placeId, hour) >= 2;
-  }
+  const isBecomingCrowded = useCallback(
+    (placeId, hour) => getCommitmentCount(placeId, hour) >= 2,
+    [getCommitmentCount]
+  );
 
   return {
     getCrowd,

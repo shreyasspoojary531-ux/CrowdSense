@@ -1,6 +1,11 @@
 /**
  * Crowd Prediction Engine v2
- * Now supports commitment-aware predictions.
+ *
+ * Core mathematical engine for crowd scoring, level classification,
+ * and time-based forecast generation. All functions are pure and side-effect free.
+ *
+ * scoreToLevel and scoreToWait are exported so useCrowdState can import them
+ * instead of maintaining duplicate definitions.
  */
 
 const NOISE_AMPLITUDE = 0.12;
@@ -22,13 +27,26 @@ function baseCrowdScore(peakHours, hour) {
   return Math.min(score, 1.0);
 }
 
-function scoreToLevel(score) {
+/**
+ * Map a raw crowd score (0–1) to a descriptive level label.
+ * Thresholds: Low < 0.38 | 0.38 <= Medium < 0.65 | High >= 0.65
+ *
+ * @param {number} score
+ * @returns {"Low"|"Medium"|"High"}
+ */
+export function scoreToLevel(score) {
   if (score >= 0.65) return "High";
   if (score >= 0.38) return "Medium";
   return "Low";
 }
 
-function scoreToWait(score) {
+/**
+ * Estimate a human-readable wait time from a crowd score.
+ *
+ * @param {number} score
+ * @returns {string} e.g. "< 2 min" or "18 min"
+ */
+export function scoreToWait(score) {
   if (score < 0.38) return "< 2 min";
   if (score < 0.65) return `${Math.round(5 + score * 10)} min`;
   return `${Math.round(15 + score * 25)} min`;

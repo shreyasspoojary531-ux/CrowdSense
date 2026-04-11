@@ -1,4 +1,14 @@
-import { initializeApp } from "firebase/app";
+/**
+ * Firebase client initialisation.
+ *
+ * Reads configuration exclusively from environment variables (never hardcoded).
+ * Guards against duplicate initialisation that can occur during Vite HMR in development.
+ *
+ * Offline strategy: when Firebase is unavailable, liveReports.js falls back
+ * to localStorage + BroadcastChannel automatically — no extra configuration needed.
+ */
+import { getApp, initializeApp } from "firebase/app";
+
 import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
@@ -21,7 +31,13 @@ let firebaseApp = null;
 let firestoreDb = null;
 
 if (isFirebaseConfigured) {
-  firebaseApp = initializeApp(firebaseConfig);
+  try {
+    // initializeApp throws if an app with the same name already exists.
+    // This can happen during Vite HMR — retrieve the existing instance instead.
+    firebaseApp = initializeApp(firebaseConfig);
+  } catch {
+    firebaseApp = getApp();
+  }
   firestoreDb = getFirestore(firebaseApp);
 }
 

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { memo } from "react";
 import { ArrowUpRight, RadioTower, TimerReset } from "lucide-react";
 import { GlowCard } from "./GlowCard";
 import { AnimatedNumber } from "./AnimatedNumber";
@@ -9,7 +9,11 @@ const LEVEL_CONFIG = {
   High: { dot: "var(--signal-high)", bar: "var(--signal-high)", glow: "red" },
 };
 
-export function PlaceCard({ place, crowd, onClick }) {
+/**
+ * Card displaying a place's live crowd level, capacity bar, and key stats.
+ * Memoized — only re-renders when place, crowd, or onClick change.
+ */
+export const PlaceCard = memo(function PlaceCard({ place, crowd, onClick }) {
   const config = LEVEL_CONFIG[crowd.level] || LEVEL_CONFIG.Medium;
 
   return (
@@ -70,4 +74,4 @@ export function PlaceCard({ place, crowd, onClick }) {
       </button>
     </GlowCard>
   );
-}
+});
