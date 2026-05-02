@@ -68,11 +68,13 @@ export const PLACE_TYPE_CONFIG = {
 /**
  * Build a fully-formed place object from a user-provided import draft.
  * Infers the venue type from the name when not explicitly supplied.
+ * lat/lng are optional — passed through when the import originates from
+ * the map (click or Nominatim search) so the place appears as a marker.
  *
- * @param {{ name: string, type?: string, location?: string }} placeDraft
+ * @param {{ name: string, type?: string, location?: string, lat?: number, lng?: number }} placeDraft
  * @returns {object} A place object compatible with the CrowdSense data model.
  */
-export function buildImportedPlace({ name, type, location }) {
+export function buildImportedPlace({ name, type, location, lat, lng }) {
   const safeName = name.trim();
   const resolvedType = type || inferTypeFromQuery(safeName);
   const config = PLACE_TYPE_CONFIG[resolvedType] || PLACE_TYPE_CONFIG.restaurant;
@@ -97,5 +99,6 @@ export function buildImportedPlace({ name, type, location }) {
     peakHours: config.peakHours,
     type: resolvedType,
     source: "import",
+    ...(lat != null && lng != null ? { lat, lng } : {}),
   };
 }

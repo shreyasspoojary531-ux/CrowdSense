@@ -355,7 +355,12 @@ function App() {
                 />
               )}
               {activeTab === "map" && (
-                <MapView onImportPlace={handleImportPlace} importing={importing} />
+                <MapView
+                  onImportPlace={handleImportPlace}
+                  importing={importing}
+                  crowds={crowds}
+                  onSelectPlace={handleSelectPlace}
+                />
               )}
             </Suspense>
           )}

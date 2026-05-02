@@ -1795,6 +1795,43 @@ button {
   font-weight: 700;
 }
 
+.map-legend-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.map-legend-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--color-text-muted);
+}
+
+.map-legend-chip i {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.map-legend-sep {
+  flex: 1;
+}
+
+.map-legend-count {
+  font-size: 0.82rem;
+  color: var(--color-text-soft);
+  font-weight: 700;
+}
+
 .map-hint-row {
   display: flex;
   align-items: center;
@@ -1863,6 +1900,94 @@ button {
   font-size: 0.76rem;
   color: #777;
   opacity: 0.75;
+}
+
+/* ── Venue popup (crowd markers) ── */
+.map-popup-venue {
+  min-width: 200px;
+}
+
+.map-popup-venue-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.map-popup-venue-icon {
+  font-size: 22px;
+  line-height: 1.1;
+  flex-shrink: 0;
+}
+
+.map-popup-venue-header strong {
+  display: block;
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #111;
+  line-height: 1.2;
+}
+
+.map-popup-venue-location {
+  display: block;
+  font-size: 0.77rem;
+  color: #777;
+  margin-top: 1px;
+}
+
+.map-popup-crowd-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 4px;
+}
+
+.map-popup-level-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.map-popup-level-label {
+  font-size: 0.82rem;
+  font-weight: 700;
+  flex: 1;
+}
+
+.map-popup-percent {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #333;
+}
+
+.map-popup-wait {
+  font-size: 0.79rem;
+  color: #666;
+  margin-bottom: 10px;
+}
+
+.map-popup-view-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 7px 10px;
+  border-radius: 8px;
+  background: rgba(99, 102, 241, 0.1);
+  border: 1px solid rgba(99, 102, 241, 0.25);
+  color: #6366F1;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.1s ease;
+  width: 100%;
+  font-family: "Poppins", sans-serif;
+}
+
+.map-popup-view-btn:hover {
+  background: rgba(99, 102, 241, 0.18);
+  transform: translateY(-1px);
 }
 
 .map-popup-add-btn {

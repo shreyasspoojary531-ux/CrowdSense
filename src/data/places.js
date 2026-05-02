@@ -1,4 +1,4 @@
-// Place definitions with icons, categories, peak hours, and capacity
+// Place definitions with icons, categories, peak hours, capacity, and map coordinates
 export const CATEGORIES = [
   { id: "all", label: "All", icon: "🌐" },
   { id: "food", label: "Food & Dining", icon: "🍽️" },
@@ -18,6 +18,8 @@ export const PLACES = [
     location: "Block A, Ground Floor",
     capacity: 200,
     peakHours: [[12, 14], [18, 20]],
+    lat: 12.9716,
+    lng: 77.5946,
   },
   {
     id: "cafe",
@@ -28,6 +30,8 @@ export const PLACES = [
     location: "Main Block, Lobby",
     capacity: 60,
     peakHours: [[8, 10], [15, 17]],
+    lat: 12.9722,
+    lng: 77.5954,
   },
   {
     id: "gym",
@@ -38,6 +42,8 @@ export const PLACES = [
     location: "Sports Complex",
     capacity: 80,
     peakHours: [[7, 9], [17, 20]],
+    lat: 12.9709,
+    lng: 77.5938,
   },
   {
     id: "library",
@@ -48,6 +54,8 @@ export const PLACES = [
     location: "Block C, 2nd Floor",
     capacity: 150,
     peakHours: [[10, 13], [20, 22]],
+    lat: 12.9728,
+    lng: 77.5962,
   },
   {
     id: "airport",
@@ -58,6 +66,8 @@ export const PLACES = [
     location: "City Airport Terminal 1",
     capacity: 5000,
     peakHours: [[5, 8], [16, 20]],
+    lat: 13.1986,
+    lng: 77.7066,
   },
   {
     id: "railway",
@@ -68,6 +78,8 @@ export const PLACES = [
     location: "City Centre",
     capacity: 3000,
     peakHours: [[7, 10], [17, 20]],
+    lat: 12.9767,
+    lng: 77.5713,
   },
   {
     id: "busstand",
@@ -78,6 +90,8 @@ export const PLACES = [
     location: "Ring Road Junction",
     capacity: 1500,
     peakHours: [[6, 9], [16, 19]],
+    lat: 12.9778,
+    lng: 77.5724,
   },
   {
     id: "mall",
@@ -88,6 +102,8 @@ export const PLACES = [
     location: "MG Road, City Centre",
     capacity: 2000,
     peakHours: [[11, 14], [17, 21]],
+    lat: 12.9762,
+    lng: 77.6035,
   },
   {
     id: "supermarket",
@@ -98,6 +114,8 @@ export const PLACES = [
     location: "Sector 12, Main Market",
     capacity: 400,
     peakHours: [[10, 12], [18, 20]],
+    lat: 12.9609,
+    lng: 77.6388,
   },
   {
     id: "coworking",
@@ -108,6 +126,8 @@ export const PLACES = [
     location: "Tech Park, Tower B",
     capacity: 120,
     peakHours: [[9, 12], [14, 17]],
+    lat: 12.9354,
+    lng: 77.6248,
   },
   {
     id: "hospital",
@@ -118,6 +138,8 @@ export const PLACES = [
     location: "City General Hospital",
     capacity: 500,
     peakHours: [[8, 11], [14, 16]],
+    lat: 12.9699,
+    lng: 77.5972,
   },
   {
     id: "theater",
@@ -128,5 +150,7 @@ export const PLACES = [
     location: "Entertainment District",
     capacity: 800,
     peakHours: [[12, 15], [18, 22]],
+    lat: 12.9618,
+    lng: 77.6462,
   },
 ];
