@@ -354,7 +354,9 @@ function App() {
                   onSelectPlace={handleSelectPlace}
                 />
               )}
-              {activeTab === "map" && <MapView />}
+              {activeTab === "map" && (
+                <MapView onImportPlace={handleImportPlace} importing={importing} />
+              )}
             </Suspense>
           )}
         </div>

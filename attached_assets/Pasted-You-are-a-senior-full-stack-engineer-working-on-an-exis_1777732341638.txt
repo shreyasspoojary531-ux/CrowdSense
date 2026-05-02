@@ -1,0 +1,69 @@
+You are a senior full-stack engineer working on an existing production-level React application.
+
+Your task is to extend existing functionality WITHOUT creating new parallel systems.
+
+STRICT RULES:
+- DO NOT create new logic for “Explore Places”
+- DO NOT duplicate state, APIs, or data models
+- You MUST reuse the existing Explore Places structure, components, and logic already present in the codebase
+- Carefully analyze how Explore Places currently works before making any changes
+
+OBJECTIVE:
+When a user selects a location (via map click or search result), they should be able to add that location into the existing “Explore Places” system.
+
+IMPLEMENTATION DETAILS:
+
+1. SOURCE OF LOCATION:
+- Detect selected location from:
+  - Map click (latitude, longitude)
+  - Search result (place name + coordinates)
+
+2. ADD BUTTON:
+- Add a UI action: “Add to Explore Places”
+- Place it in:
+  - Map popup OR
+  - Location details panel
+
+3. REUSE EXISTING FLOW:
+- Inspect how places are currently added in “Explore Places”
+- Use the SAME function / state / API used there
+- Do NOT create a new add function
+
+4. DATA STRUCTURE:
+When adding a place, pass:
+- place name
+- latitude
+- longitude
+- any required existing fields
+
+5. CROWD INPUT (IMPORTANT):
+- When user clicks “Add to Explore Places”:
+  - Trigger the EXISTING input system used in Explore Places
+  - Allow user to input crowd level/details
+- DO NOT create new input logic
+- Reuse the same form, validation, and storage mechanism already present
+
+6. UI FLOW:
+- User selects location
+- Clicks “Add to Explore Places”
+- Existing input UI opens (for crowd info)
+- On submit → place is added to Explore Places list
+
+7. CODE CONSTRAINTS:
+- Modify only necessary components
+- Keep code modular and consistent
+- Follow existing patterns in the codebase
+- Do not break existing Explore Places functionality
+
+8. EDGE CASES:
+- Prevent duplicate entries for same coordinates
+- Handle missing place names gracefully
+- Ensure smooth UX after adding (feedback or toast if already exists in app)
+
+OUTPUT:
+- Show only modified files/components
+- Clearly explain where integration was done
+- Ensure compatibility with current app structure
+
+FINAL GOAL:
+The new feature must feel like a natural extension of the existing Explore Places system, not an add-on or separate feature.

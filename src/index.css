@@ -1857,22 +1857,63 @@ button {
   color: #555;
 }
 
+.map-popup-coords {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.76rem;
+  color: #777;
+  opacity: 0.75;
+}
+
+.map-popup-add-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 10px;
+  padding: 7px 10px;
+  border-radius: 8px;
+  background: rgba(255, 122, 0, 0.1);
+  border: 1px solid rgba(255, 122, 0, 0.28);
+  color: #FF7A00;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.1s ease;
+  width: 100%;
+  font-family: "Poppins", sans-serif;
+}
+
+.map-popup-add-btn:hover:not(:disabled) {
+  background: rgba(255, 122, 0, 0.2);
+  transform: translateY(-1px);
+}
+
+.map-popup-add-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
 .map-popup-remove {
-  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 6px;
   padding: 5px 10px;
   border-radius: 8px;
-  background: rgba(239, 68, 68, 0.1);
-  border: 1px solid rgba(239, 68, 68, 0.2);
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.18);
   color: #ef4444;
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   font-weight: 700;
   cursor: pointer;
   transition: background 0.15s ease;
   width: 100%;
+  font-family: "Poppins", sans-serif;
 }
 
 .map-popup-remove:hover {
-  background: rgba(239, 68, 68, 0.2);
+  background: rgba(239, 68, 68, 0.18);
 }
 
 .leaflet-container {

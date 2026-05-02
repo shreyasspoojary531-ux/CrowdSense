@@ -2,7 +2,8 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { MapPin, Search, X, Navigation } from "lucide-react";
+import { MapPin, PlusSquare, Search, X, Navigation } from "lucide-react";
+import { inferTypeFromQuery } from "../data/suggestions";
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -50,7 +51,15 @@ function MapClickHandler({ onMapClick }) {
   return null;
 }
 
-export function MapView() {
+/**
+ * MapView page.
+ *
+ * onImportPlace — the SAME handleImportPlace callback from App.jsx used by the
+ * existing SearchBar / Sidebar import flow. Calling it from here means map
+ * locations go through the identical deduplication, buildImportedPlace, and
+ * PlaceDetail (crowd report form) flow as every other import in the app.
+ */
+export function MapView({ onImportPlace, importing }) {
   const [userPosition, setUserPosition] = useState(null);
   const [flyTarget, setFlyTarget] = useState(null);
   const [clickMarkers, setClickMarkers] = useState([]);
@@ -105,9 +114,18 @@ export function MapView() {
   const handleSuggestionSelect = useCallback((item) => {
     const lat = parseFloat(item.lat);
     const lng = parseFloat(item.lon);
-    setSearchMarker({ lat, lng, label: item.display_name });
+    const placeName = item.display_name.split(",")[0].trim();
+    const placeLocation = item.display_name.split(",").slice(1, 3).join(",").trim();
+    setSearchMarker({
+      lat,
+      lng,
+      label: item.display_name,
+      name: placeName,
+      location: placeLocation,
+      nominatimType: item.type || item.class || "",
+    });
     setFlyTarget({ lat, lng, zoom: 14 });
-    setQuery(item.display_name.split(",")[0]);
+    setQuery(placeName);
     setSuggestions([]);
     setDropdownOpen(false);
   }, []);
@@ -132,6 +150,36 @@ export function MapView() {
     });
   }, []);
 
+  /**
+   * Add a searched/named location to Explore Places.
+   * Delegates entirely to the existing handleImportPlace in App.jsx —
+   * same function used by SearchBar and Sidebar. This preserves deduplication,
+   * buildImportedPlace logic, and navigation to PlaceDetail (crowd form).
+   */
+  const handleAddSearchedPlace = useCallback(() => {
+    if (!onImportPlace || !searchMarker || importing) return;
+    onImportPlace({
+      name: searchMarker.name,
+      type: inferTypeFromQuery(searchMarker.name + " " + searchMarker.nominatimType),
+      location: searchMarker.location || `${searchMarker.lat.toFixed(5)}, ${searchMarker.lng.toFixed(5)}`,
+    });
+  }, [onImportPlace, searchMarker, importing]);
+
+  /**
+   * Add a click-dropped pin to Explore Places.
+   * Uses coordinates as the location and a generated name so the existing
+   * buildImportedPlace function can process it without any new logic.
+   */
+  const handleAddClickedPlace = useCallback((marker) => {
+    if (!onImportPlace || importing) return;
+    const name = `Location ${marker.lat.toFixed(4)}, ${marker.lng.toFixed(4)}`;
+    onImportPlace({
+      name,
+      type: "restaurant",
+      location: `${marker.lat.toFixed(5)}, ${marker.lng.toFixed(5)}`,
+    });
+  }, [onImportPlace, importing]);
+
   const defaultCenter = [20.5937, 78.9629];
 
   return (
@@ -142,7 +190,7 @@ export function MapView() {
           OpenStreetMap Explorer
         </h2>
         <p style={{ margin: 0, color: "var(--color-text-muted)", fontSize: "0.92rem" }}>
-          Search places, click to drop pins, and explore the world.
+          Search places, click to drop pins, and add them to Explore Places.
         </p>
       </div>
 
@@ -213,7 +261,7 @@ export function MapView() {
 
       <div className="map-hint-row">
         <MapPin size={13} style={{ color: "var(--brand-primary)", flexShrink: 0 }} />
-        <span>Click anywhere on the map to drop a pin with coordinates.</span>
+        <span>Click anywhere on the map to drop a pin. Open any popup to add it to Explore Places.</span>
         {clickMarkers.length > 0 && (
           <button
             type="button"
@@ -260,13 +308,27 @@ export function MapView() {
               position={[searchMarker.lat, searchMarker.lng]}
               icon={searchIcon}
             >
-              <Popup>
+              <Popup minWidth={190}>
                 <div className="map-popup">
-                  <strong>{searchMarker.label.split(",")[0]}</strong>
-                  <span>{searchMarker.label.split(",").slice(1, 3).join(",").trim()}</span>
-                  <span style={{ marginTop: "4px", display: "block", opacity: 0.65, fontSize: "0.78rem" }}>
+                  <strong>{searchMarker.name}</strong>
+                  {searchMarker.location && (
+                    <span>{searchMarker.location}</span>
+                  )}
+                  <span className="map-popup-coords">
                     {searchMarker.lat.toFixed(5)}, {searchMarker.lng.toFixed(5)}
                   </span>
+                  {onImportPlace && (
+                    <button
+                      type="button"
+                      className="map-popup-add-btn"
+                      onClick={handleAddSearchedPlace}
+                      disabled={importing}
+                      aria-label={`Add ${searchMarker.name} to Explore Places`}
+                    >
+                      <PlusSquare size={13} aria-hidden="true" />
+                      {importing ? "Adding…" : "Add to Explore Places"}
+                    </button>
+                  )}
                 </div>
               </Popup>
             </Marker>
@@ -274,13 +336,26 @@ export function MapView() {
 
           {clickMarkers.map((m) => (
             <Marker key={m.id} position={[m.lat, m.lng]} icon={clickIcon}>
-              <Popup>
+              <Popup minWidth={190}>
                 <div className="map-popup">
                   <strong>Dropped pin</strong>
-                  <span>
+                  <span className="map-popup-coords">
                     {m.lat.toFixed(5)}, {m.lng.toFixed(5)}
                   </span>
+                  {onImportPlace && (
+                    <button
+                      type="button"
+                      className="map-popup-add-btn"
+                      onClick={() => handleAddClickedPlace(m)}
+                      disabled={importing}
+                      aria-label="Add this location to Explore Places"
+                    >
+                      <PlusSquare size={13} aria-hidden="true" />
+                      {importing ? "Adding…" : "Add to Explore Places"}
+                    </button>
+                  )}
                   <button
+                    type="button"
                     className="map-popup-remove"
                     onClick={() => removeClickMarker(m.id)}
                   >
