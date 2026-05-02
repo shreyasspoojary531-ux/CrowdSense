@@ -4,6 +4,7 @@ import {
   ChartNoAxesCombined,
   Compass,
   LayoutDashboard,
+  Map,
   MoonStar,
   PlusSquare,
   SunMedium,
@@ -21,6 +22,7 @@ const NAV_ITEMS = [
   { id: "report", label: "Add Report", icon: PlusSquare },
   { id: "explore", label: "Explore Places", icon: Compass },
   { id: "analytics", label: "Analytics", icon: ChartNoAxesCombined },
+  { id: "map", label: "Map", icon: Map },
 ];
 
 /**

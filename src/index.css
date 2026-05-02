@@ -1723,4 +1723,179 @@ button {
   transition: transform 0.1s ease !important;
 }
 
+/* ── Map page ── */
+
+.map-page-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.map-page-header {
+  padding: 4px 0 2px;
+}
+
+.map-controls-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  position: relative;
+  z-index: 400;
+}
+
+.map-search-wrapper {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  z-index: 400;
+}
+
+.map-search-shell {
+  width: 100%;
+}
+
+.map-dropdown {
+  z-index: 9999 !important;
+}
+
+.map-clear-btn {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  background: var(--color-surface-3);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.map-clear-btn:hover {
+  background: rgba(255, 122, 0, 0.18);
+  color: var(--brand-primary);
+}
+
+.map-searching-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--brand-primary);
+  flex: 0 0 auto;
+  animation: pulseDot 1s ease-in-out infinite;
+}
+
+.map-locate-btn {
+  flex: 0 0 auto;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 16px;
+  font-weight: 700;
+}
+
+.map-hint-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--color-text-muted);
+  font-size: 0.84rem;
+}
+
+.map-clear-pins-btn {
+  margin-left: auto;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: rgba(255, 122, 0, 0.1);
+  border: 1px solid rgba(255, 122, 0, 0.2);
+  color: var(--brand-primary);
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.map-clear-pins-btn:hover {
+  background: rgba(255, 122, 0, 0.18);
+}
+
+.map-container-card {
+  overflow: hidden;
+  padding: 0 !important;
+  height: 560px;
+  border-radius: 16px;
+}
+
+.map-container-card:hover {
+  transform: none;
+}
+
+.leaflet-map {
+  width: 100%;
+  height: 100%;
+  border-radius: 16px;
+  z-index: 1;
+}
+
+.map-popup {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 140px;
+  font-family: "Poppins", sans-serif;
+}
+
+.map-popup strong {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #111;
+}
+
+.map-popup span {
+  font-size: 0.8rem;
+  color: #555;
+}
+
+.map-popup-remove {
+  margin-top: 8px;
+  padding: 5px 10px;
+  border-radius: 8px;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  width: 100%;
+}
+
+.map-popup-remove:hover {
+  background: rgba(239, 68, 68, 0.2);
+}
+
+.leaflet-container {
+  font-family: "Poppins", sans-serif;
+}
+
+.leaflet-control-zoom a {
+  font-family: "Poppins", sans-serif;
+}
+
+@media (max-width: 680px) {
+  .map-container-card {
+    height: 380px;
+  }
+
+  .map-controls-row {
+    flex-direction: column;
+  }
+
+  .map-locate-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
 

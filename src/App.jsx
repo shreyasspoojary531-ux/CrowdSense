@@ -32,6 +32,7 @@ const Dashboard = lazy(() => import("./pages/Dashboard").then((m) => ({ default:
 const ReportTab  = lazy(() => import("./pages/ReportTab").then((m) => ({ default: m.ReportTab })));
 const Explore    = lazy(() => import("./pages/Explore").then((m) => ({ default: m.Explore })));
 const Analytics  = lazy(() => import("./pages/Analytics").then((m) => ({ default: m.Analytics })));
+const MapView    = lazy(() => import("./pages/MapView").then((m) => ({ default: m.MapView })));
 
 /** Fallback shown while a lazy page chunk is loading. */
 const PAGE_FALLBACK = (
@@ -64,6 +65,10 @@ const TAB_META = {
   analytics: {
     title: "Analytics",
     subtitle: "Watch the live graph shift as reports and intent roll in.",
+  },
+  map: {
+    title: "Map",
+    subtitle: "Search and explore places on an interactive OpenStreetMap.",
   },
 };
 
@@ -349,6 +354,7 @@ function App() {
                   onSelectPlace={handleSelectPlace}
                 />
               )}
+              {activeTab === "map" && <MapView />}
             </Suspense>
           )}
         </div>
