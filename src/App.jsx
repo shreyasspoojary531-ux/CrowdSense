@@ -34,14 +34,16 @@ const Explore    = lazy(() => import("./pages/Explore").then((m) => ({ default: 
 const Analytics  = lazy(() => import("./pages/Analytics").then((m) => ({ default: m.Analytics })));
 const MapView    = lazy(() => import("./pages/MapView").then((m) => ({ default: m.MapView })));
 
-/** Fallback shown while a lazy page chunk is loading. */
+/** Skeleton fallback shown while a lazy page chunk is loading. */
 const PAGE_FALLBACK = (
-  <div
-    role="status"
-    aria-live="polite"
-    style={{ padding: "40px", textAlign: "center", color: "var(--color-text-soft)" }}
-  >
-    Loading…
+  <div className="page-skeleton" role="status" aria-live="polite" aria-label="Loading page">
+    <div className="skeleton-hero" />
+    <div className="skeleton-grid">
+      {[0, 1, 2, 3].map((i) => (
+        <div key={i} className="skeleton-card" style={{ "--i": i }} />
+      ))}
+    </div>
+    <div className="skeleton-block" style={{ height: 180, borderRadius: 20 }} />
   </div>
 );
 
