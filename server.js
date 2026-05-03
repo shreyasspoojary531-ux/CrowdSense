@@ -15,6 +15,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import helmet from "helmet";
 import compression from "compression";
+import rateLimit from "express-rate-limit";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname  = path.dirname(__filename);
@@ -23,6 +24,33 @@ const PORT       = process.env.PORT || 8080;
 const IS_PROD    = process.env.NODE_ENV === "production";
 
 const app = express();
+
+// ── Rate limiting ──────────────────────────────────────────────────────────
+// General limiter — covers all routes including the SPA fallback.
+// Prevents bots and burst-scrapers from hammering the static server and
+// provides a second line of defence if the client-side rate limiter is
+// bypassed (e.g. by a headless script that re-uses the SPA origin).
+const generalLimiter = rateLimit({
+  windowMs:         15 * 60 * 1000, // 15-minute sliding window
+  max:              200,             // requests per window per IP
+  standardHeaders:  "draft-7",      // emit RateLimit-* headers (RFC 9110 draft)
+  legacyHeaders:    false,
+  message:          { error: "Too many requests — please try again shortly." },
+  // Skip rate limiting for static assets (hashed filenames, safe to cache-bust freely).
+  skip: (req) => req.path.startsWith("/assets/"),
+});
+
+// Tighter limiter scoped to the SPA HTML entry-point.
+// Stops automated tools that repeatedly reload index.html to re-initialise state.
+const htmlLimiter = rateLimit({
+  windowMs:        5 * 60 * 1000, // 5-minute window
+  max:             60,             // 60 HTML loads per 5 min ≈ 1 per 5 s sustained
+  standardHeaders: "draft-7",
+  legacyHeaders:   false,
+  message:         { error: "Too many requests — please try again shortly." },
+});
+
+app.use(generalLimiter);
 
 // ── Security headers via Helmet ────────────────────────────────────────────
 app.use(
@@ -79,7 +107,9 @@ app.use(
 );
 
 // ── SPA fallback — GET only ────────────────────────────────────────────────
-app.get("*", (_req, res, next) => {
+// htmlLimiter applied here so every index.html load (page refresh / direct
+// navigation) counts against the tighter per-IP HTML window.
+app.get("*", htmlLimiter, (_req, res, next) => {
   res.sendFile(path.join(DIST_DIR, "index.html"), (err) => {
     if (err) next(err);
   });
