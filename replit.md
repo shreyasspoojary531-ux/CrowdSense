@@ -39,10 +39,14 @@ Real-time crowd intelligence web app built with React 19 + Vite 8 + Tailwind 4.
 
 ## Design System (`src/index.css`)
 - **Tokens**: CSS custom properties for colors, spacing (8px grid), radii, shadows
-- **Dark mode**: `.dark` class on `<html>`, very subtle radial gradient mesh background (#0A0A0C)
-- **Glass cards**: `.glass-card` — backdrop blur, inner top-edge highlight via `::before`, hover lift
+- **Dark mode**: `.dark` class on `<html>`. Deep `#08080B` bg with 4-point radial mesh (brand orange top-left, violet top-right, warm bleed bottom-right, cool indigo bottom-left)
+- **Glassmorphism + Bevel**: Full-system bevel treatment on every surface via 4-layer `inset` box-shadows:
+  - Top-left face highlights: `inset 0 1px 0 rgba(255,255,255,…)` + `inset 1px 0 0 rgba(255,255,255,…)`
+  - Bottom-right recession: `inset 0 -1px 0 rgba(0,0,0,…)` + `inset -1px 0 0 rgba(0,0,0,…)`
+  - Applied to: `.glass-card`, `.sidebar`, `.nav-bar`, `.brand-mark`, `.sidebar-item.active`, `.sidebar-import`, `.sidebar-live-card`, `.btn-primary`, `.btn-secondary`, `.search-shell`, `.hero-signal-grid > div`, `.metric-card-icon`, `.place-card-icon`, `.signal-item`, `.leaderboard-item`, `.feed-item`, `.stat-chip`, `.cat-pill.active`, `.switcher-pill.active`, `.chart-tooltip`, `.best-time-card`, `.impact-card`, `.peak-warning`, `.tip-banner`
+- **Glass cards**: `.glass-card` — `blur(28px) saturate(1.8) brightness(1.02)`, `::before` top-left light sweep, `::after` bottom-right vignette
 - **Skeleton loaders**: `.page-skeleton`, `.skeleton-hero`, `.skeleton-grid`, `.skeleton-card` with shimmer animation
-- **Buttons**: `.btn-primary` (orange gradient), `.btn-secondary`, `.btn-outline`
+- **Buttons**: `.btn-primary` (145deg orange gradient + full bevel), `.btn-secondary` (surface gradient + bevel), `.btn-outline`
 - **Status pills**: `.status-low/medium/high`, `.place-level-pill`, `.detail-level-pill`
 - **Map styles**: Leaflet popup, crowd marker, search dropdown all themed
 
