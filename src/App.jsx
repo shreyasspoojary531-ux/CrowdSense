@@ -142,21 +142,25 @@ function App() {
 
       if (lat == null || lng == null) {
         setImportStatus("Locating on map…");
+        const geoController = new AbortController();
+        const geoTimeout    = window.setTimeout(() => geoController.abort(), 6_000);
         try {
           const q = [trimmedName, sanitizePlaceName(placeDraft.location || "")]
             .filter(Boolean)
             .join(" ");
           const res = await fetch(
             `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=1`,
-            { headers: { "Accept-Language": "en" } }
+            { headers: { "Accept-Language": "en" }, signal: geoController.signal }
           );
           const data = await res.json();
-          if (data.length > 0) {
+          if (Array.isArray(data) && data.length > 0) {
             lat = parseFloat(data[0].lat);
             lng = parseFloat(data[0].lon);
           }
         } catch {
-          // Geocoding failed — place tracked without a map pin.
+          // Geocoding failed or timed out — place tracked without a map pin.
+        } finally {
+          window.clearTimeout(geoTimeout);
         }
         setImportStatus("Building live prediction model…");
       }

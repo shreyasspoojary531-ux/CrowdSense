@@ -6,7 +6,10 @@ import {
   inferTypeFromQuery,
 } from "../data/suggestions";
 
-/** Unique ID for the suggestions listbox — used to wire up ARIA combobox pattern. */
+/** Maximum characters accepted in the search field. */
+const MAX_QUERY_LENGTH = 100;
+
+/** Unique ID for the suggestions listbox — wires up the ARIA combobox pattern. */
 const LISTBOX_ID = "search-suggestions-listbox";
 
 /**
@@ -15,14 +18,15 @@ const LISTBOX_ID = "search-suggestions-listbox";
  * Implements the ARIA combobox pattern so keyboard and screen-reader users can
  * navigate and select suggestions without a mouse.
  *
- * Debounces the expensive filtering work by 250 ms so rapid typing doesn't
- * block the main thread.
+ * - Debounces filtering work by 250 ms so rapid typing doesn't block the main thread.
+ * - All expensive derivations are memoised to prevent redundant work on re-renders.
+ * - Input length is capped at MAX_QUERY_LENGTH to prevent excessively long queries.
  */
 export function SearchBar({ onImportPlace, importing, onTabChange }) {
-  const [query, setQuery] = useState("");
+  const [query, setQuery]               = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
-  const [focused, setFocused] = useState(false);
-  const debounceRef = useRef(null);
+  const [focused, setFocused]           = useState(false);
+  const debounceRef                     = useRef(null);
 
   // Debounce the query used for filtering suggestions (250 ms).
   useEffect(() => {
@@ -40,11 +44,19 @@ export function SearchBar({ onImportPlace, importing, onTabChange }) {
     }).slice(0, 6);
   }, [debouncedQuery]);
 
-  const hasExactMatch = PLACE_SUGGESTIONS.some(
-    (s) => s.name.toLowerCase() === debouncedQuery
+  // Memoised: O(n) scan over PLACE_SUGGESTIONS — avoids recomputing on every render.
+  const hasExactMatch = useMemo(
+    () => PLACE_SUGGESTIONS.some((s) => s.name.toLowerCase() === debouncedQuery),
+    [debouncedQuery]
   );
+
   const allowCustom = debouncedQuery.length > 2 && !hasExactMatch;
-  const customType = allowCustom ? inferTypeFromQuery(debouncedQuery) : null;
+
+  // Memoised: inferTypeFromQuery does regex work — only run when inputs change.
+  const customType = useMemo(
+    () => (allowCustom ? inferTypeFromQuery(debouncedQuery) : null),
+    [allowCustom, debouncedQuery]
+  );
 
   const suggestionsToShow = useMemo(
     () =>
@@ -63,8 +75,8 @@ export function SearchBar({ onImportPlace, importing, onTabChange }) {
     (suggestion) => {
       if (!onImportPlace || importing) return;
       onImportPlace({
-        name: suggestion.name,
-        type: suggestion.type,
+        name:     suggestion.name,
+        type:     suggestion.type,
         location: suggestion.location,
       });
       setQuery("");
@@ -81,7 +93,13 @@ export function SearchBar({ onImportPlace, importing, onTabChange }) {
       style={{ position: "relative", width: "100%", maxWidth: "400px" }}
     >
       {/* Combobox wrapper */}
-      <div className="search-shell" role="combobox" aria-expanded={isOpen} aria-haspopup="listbox" aria-owns={LISTBOX_ID}>
+      <div
+        className="search-shell"
+        role="combobox"
+        aria-expanded={isOpen}
+        aria-haspopup="listbox"
+        aria-owns={LISTBOX_ID}
+      >
         <Search size={16} aria-hidden="true" />
         <input
           className="import-input"
@@ -90,6 +108,7 @@ export function SearchBar({ onImportPlace, importing, onTabChange }) {
           aria-label="Search and import a venue"
           aria-autocomplete="list"
           aria-controls={LISTBOX_ID}
+          maxLength={MAX_QUERY_LENGTH}
           onChange={(e) => setQuery(e.target.value)}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
