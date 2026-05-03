@@ -121,7 +121,7 @@ function App() {
   }, []);
 
   const handleImportPlace = useCallback(
-    (placeDraft) => {
+    async (placeDraft) => {
       // Sanitize all user-supplied strings before processing.
       const trimmedName = sanitizePlaceName(placeDraft?.name || "");
       if (!trimmedName) return;
@@ -139,30 +139,63 @@ function App() {
       setImporting(true);
       setImportStatus("Mapping venue profile and creating live prediction…");
 
-      window.setTimeout(() => {
-        const newPlace = buildImportedPlace({
-          name: trimmedName,
-          type: placeDraft.type,
-          location: sanitizePlaceName(placeDraft.location || ""),
-        });
+      // Use coordinates from placeDraft when available (map imports).
+      // Otherwise geocode via Nominatim so every place gets a map pin.
+      let lat = placeDraft.lat ?? null;
+      let lng = placeDraft.lng ?? null;
 
-        setImportedPlaces((prev) => {
-          const next = [...prev, newPlace];
-          try {
-            localStorage.setItem(IMPORT_STORAGE_KEY, JSON.stringify(next));
-          } catch {
-            // Ignore storage quota failures — operate in-memory.
+      if (lat == null || lng == null) {
+        setImportStatus("Locating on map…");
+        try {
+          const q = [trimmedName, sanitizePlaceName(placeDraft.location || "")]
+            .filter(Boolean)
+            .join(" ");
+          const res = await fetch(
+            `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=1`,
+            { headers: { "Accept-Language": "en" } }
+          );
+          const data = await res.json();
+          if (data.length > 0) {
+            lat = parseFloat(data[0].lat);
+            lng = parseFloat(data[0].lon);
           }
-          return next;
-        });
+        } catch {
+          // Geocoding failed — place tracked without a map pin.
+        }
+        setImportStatus("Building live prediction model…");
+      }
 
-        setSelectedPlace(newPlace);
-        setActiveTab("explore");
-        setImporting(false);
-        setImportStatus("");
-        crowdState.showToast(`Imported ${newPlace.name}. CrowdSense is tracking it now.`);
-        window.scrollTo({ top: 0, behavior: "smooth" });
-      }, 900);
+      // Brief UX delay so the status messages are readable.
+      await new Promise((resolve) => window.setTimeout(resolve, 700));
+
+      const newPlace = buildImportedPlace({
+        name: trimmedName,
+        type: placeDraft.type,
+        location: sanitizePlaceName(placeDraft.location || ""),
+        lat,
+        lng,
+      });
+
+      setImportedPlaces((prev) => {
+        const next = [...prev, newPlace];
+        try {
+          localStorage.setItem(IMPORT_STORAGE_KEY, JSON.stringify(next));
+        } catch {
+          // Ignore storage quota failures — operate in-memory.
+        }
+        return next;
+      });
+
+      setSelectedPlace(newPlace);
+      setActiveTab("explore");
+      setImporting(false);
+      setImportStatus("");
+      crowdState.showToast(
+        lat != null
+          ? `${newPlace.name} added and pinned on the map.`
+          : `${newPlace.name} imported. CrowdSense is now tracking it.`
+      );
+      window.scrollTo({ top: 0, behavior: "smooth" });
     },
     [allPlaces, crowdState]
   );

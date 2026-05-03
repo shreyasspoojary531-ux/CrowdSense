@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { ArrowRight, MapPin, PlusSquare, Search, X, Navigation } from "lucide-react";
+import { ArrowRight, Layers, MapPin, PlusSquare, Search, X, Navigation } from "lucide-react";
 import { inferTypeFromQuery } from "../data/suggestions";
 
 delete L.Icon.Default.prototype._getIconUrl;
@@ -28,11 +28,11 @@ function createCrowdIcon(level, emoji) {
   const html = `
     <div style="
       position: relative;
-      width: 42px; height: 42px;
+      width: 44px; height: 44px;
       border-radius: 50%;
       background: #fff;
       border: 3px solid ${color};
-      box-shadow: 0 3px 10px rgba(0,0,0,0.28);
+      box-shadow: 0 2px 12px rgba(0,0,0,0.22), 0 0 0 2px ${color}22;
       display: flex; align-items: center; justify-content: center;
       font-size: 20px;
       line-height: 1;
@@ -45,16 +45,16 @@ function createCrowdIcon(level, emoji) {
         border-radius: 50%;
         background: ${color};
         border: 2.5px solid #fff;
-        box-shadow: 0 1px 4px rgba(0,0,0,0.28);
+        box-shadow: 0 1px 4px rgba(0,0,0,0.3);
       "></span>
     </div>
   `;
   return L.divIcon({
     html,
     className: "",
-    iconSize: [42, 50],
-    iconAnchor: [21, 50],
-    popupAnchor: [0, -52],
+    iconSize: [44, 52],
+    iconAnchor: [22, 52],
+    popupAnchor: [0, -54],
   });
 }
 
@@ -78,6 +78,7 @@ const clickIcon = new L.Icon({
   shadowSize: [41, 41],
 });
 
+/** Fly to a specific lat/lng+zoom when `target` changes. */
 function FlyToLocation({ target }) {
   const map = useMap();
   useEffect(() => {
@@ -85,6 +86,40 @@ function FlyToLocation({ target }) {
       map.flyTo([target.lat, target.lng], target.zoom ?? 14, { duration: 1.2 });
     }
   }, [map, target]);
+  return null;
+}
+
+/** Auto-fit map bounds to show all venue markers on first render. */
+function AutoFitBounds({ markers }) {
+  const map = useMap();
+  const fitted = useRef(false);
+
+  useEffect(() => {
+    if (fitted.current || markers.length === 0) return;
+    const bounds = L.latLngBounds(markers.map(({ place }) => [place.lat, place.lng]));
+    if (bounds.isValid()) {
+      map.fitBounds(bounds, { padding: [52, 52], maxZoom: 14, animate: true, duration: 0.8 });
+      fitted.current = true;
+    }
+  }, [map, markers]);
+
+  return null;
+}
+
+/** Re-fits bounds whenever `trigger` increments (for the "View all" button). */
+function FitAllController({ markers, trigger }) {
+  const map = useMap();
+  const lastTrigger = useRef(0);
+
+  useEffect(() => {
+    if (trigger === 0 || trigger === lastTrigger.current || markers.length === 0) return;
+    lastTrigger.current = trigger;
+    const bounds = L.latLngBounds(markers.map(({ place }) => [place.lat, place.lng]));
+    if (bounds.isValid()) {
+      map.flyToBounds(bounds, { padding: [52, 52], maxZoom: 14, duration: 1.0 });
+    }
+  }, [map, markers, trigger]);
+
   return null;
 }
 
@@ -100,9 +135,9 @@ function MapClickHandler({ onMapClick }) {
 /**
  * MapView page.
  *
- * crowds       — array of { place, crowd } from App.jsx (already computed + memoised)
- * onSelectPlace — existing handleSelectPlace from App.jsx — navigates to PlaceDetail
- * onImportPlace — existing handleImportPlace from App.jsx — adds to Explore Places
+ * crowds        — array of { place, crowd } from App.jsx (all places, memoised)
+ * onSelectPlace — navigate to PlaceDetail
+ * onImportPlace — adds to Explore Places (now geocodes if no coords)
  * importing     — boolean while an import is in-progress
  */
 export function MapView({ crowds = [], onSelectPlace, onImportPlace, importing }) {
@@ -110,6 +145,7 @@ export function MapView({ crowds = [], onSelectPlace, onImportPlace, importing }
   const [flyTarget, setFlyTarget] = useState(null);
   const [clickMarkers, setClickMarkers] = useState([]);
   const [searchMarker, setSearchMarker] = useState(null);
+  const [fitAllTrigger, setFitAllTrigger] = useState(0);
 
   const [query, setQuery] = useState("");
   const [suggestions, setSuggestions] = useState([]);
@@ -123,16 +159,24 @@ export function MapView({ crowds = [], onSelectPlace, onImportPlace, importing }
     [crowds]
   );
 
+  // Crowd level counts for the legend
+  const levelCounts = useMemo(() => {
+    const counts = { Low: 0, Medium: 0, High: 0 };
+    venueMarkers.forEach(({ crowd }) => {
+      if (counts[crowd.level] != null) counts[crowd.level]++;
+    });
+    return counts;
+  }, [venueMarkers]);
+
   useEffect(() => {
     if (!navigator.geolocation) return;
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
         setUserPosition(coords);
-        setFlyTarget({ ...coords, zoom: 12 });
       },
       () => {
-        setFlyTarget({ lat: 12.9716, lng: 77.5946, zoom: 12 });
+        // No geolocation — AutoFitBounds will handle initial view
       }
     );
   }, []);
@@ -175,7 +219,7 @@ export function MapView({ crowds = [], onSelectPlace, onImportPlace, importing }
       location: placeLocation,
       nominatimType: item.type || item.class || "",
     });
-    setFlyTarget({ lat, lng, zoom: 14 });
+    setFlyTarget({ lat, lng, zoom: 15 });
     setQuery(placeName);
     setSuggestions([]);
     setDropdownOpen(false);
@@ -229,26 +273,40 @@ export function MapView({ crowds = [], onSelectPlace, onImportPlace, importing }
     <div className="map-page-stack">
       <div className="map-page-header">
         <div className="section-kicker">Live map</div>
-        <h2 style={{ margin: "6px 0 4px", fontFamily: "Poppins, sans-serif", fontSize: "1.4rem" }}>
-          OpenStreetMap Explorer
+        <h2 style={{ margin: "6px 0 4px", fontFamily: "Poppins, sans-serif", fontSize: "1.4rem", letterSpacing: "-0.02em" }}>
+          All Explore Places on the Map
         </h2>
         <p style={{ margin: 0, color: "var(--color-text-muted)", fontSize: "0.92rem" }}>
-          Live crowd levels on the map. Search places, drop pins, and add them to Explore Places.
+          Every tracked venue is pinned with a live crowd level. Search to add new places — they appear here automatically.
         </p>
       </div>
 
-      {/* ── Legend ── */}
+      {/* ── Legend + stats ── */}
       <div className="map-legend-row">
         {Object.entries(CROWD_COLOR).map(([level, color]) => (
           <span key={level} className="map-legend-chip">
             <i style={{ background: color }} />
             {level}
+            <span style={{ marginLeft: 2, opacity: 0.7, fontSize: "0.76rem" }}>
+              ({levelCounts[level]})
+            </span>
           </span>
         ))}
         <span className="map-legend-sep" />
         <span className="map-legend-count">
-          {venueMarkers.length} venue{venueMarkers.length !== 1 ? "s" : ""} tracked
+          {venueMarkers.length} venue{venueMarkers.length !== 1 ? "s" : ""} pinned
         </span>
+        {venueMarkers.length > 0 && (
+          <button
+            type="button"
+            className="map-clear-pins-btn"
+            style={{ background: "rgba(99,102,241,0.1)", borderColor: "rgba(99,102,241,0.2)", color: "#818CF8" }}
+            onClick={() => setFitAllTrigger((t) => t + 1)}
+          >
+            <Layers size={12} style={{ display: "inline", marginRight: 5 }} />
+            View all {venueMarkers.length}
+          </button>
+        )}
       </div>
 
       {/* ── Search + locate ── */}
@@ -258,7 +316,7 @@ export function MapView({ crowds = [], onSelectPlace, onImportPlace, importing }
             <Search size={16} aria-hidden="true" />
             <input
               className="import-input"
-              placeholder="Search any place on the map…"
+              placeholder="Search any place to add it to your map…"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onFocus={() => suggestions.length > 0 && setDropdownOpen(true)}
@@ -346,17 +404,25 @@ export function MapView({ crowds = [], onSelectPlace, onImportPlace, importing }
             maxZoom={19}
           />
 
+          {/* Auto-fit to all venue markers on first load */}
+          <AutoFitBounds markers={venueMarkers} />
+
+          {/* Re-fit when "View all" is triggered */}
+          <FitAllController markers={venueMarkers} trigger={fitAllTrigger} />
+
+          {/* Fly-to when a search result or locate is triggered */}
           <FlyToLocation target={flyTarget} />
+
           <MapClickHandler onMapClick={handleMapClick} />
 
-          {/* ── CrowdSense venue markers (colour-coded by live crowd level) ── */}
+          {/* ── CrowdSense venue markers — every place from Explore Places ── */}
           {venueMarkers.map(({ place, crowd }) => (
             <Marker
               key={place.id}
               position={[place.lat, place.lng]}
               icon={createCrowdIcon(crowd.level, place.icon)}
             >
-              <Popup minWidth={200}>
+              <Popup minWidth={210}>
                 <div className="map-popup map-popup-venue">
                   <div className="map-popup-venue-header">
                     <span className="map-popup-venue-icon">{place.icon}</span>
@@ -417,7 +483,7 @@ export function MapView({ crowds = [], onSelectPlace, onImportPlace, importing }
           {/* ── Nominatim search result marker ── */}
           {searchMarker && (
             <Marker position={[searchMarker.lat, searchMarker.lng]} icon={searchIcon}>
-              <Popup minWidth={190}>
+              <Popup minWidth={200}>
                 <div className="map-popup">
                   <strong>{searchMarker.name}</strong>
                   {searchMarker.location && <span>{searchMarker.location}</span>}
@@ -443,7 +509,7 @@ export function MapView({ crowds = [], onSelectPlace, onImportPlace, importing }
           {/* ── Click-dropped pin markers ── */}
           {clickMarkers.map((m) => (
             <Marker key={m.id} position={[m.lat, m.lng]} icon={clickIcon}>
-              <Popup minWidth={190}>
+              <Popup minWidth={200}>
                 <div className="map-popup">
                   <strong>Dropped pin</strong>
                   <span className="map-popup-coords">
