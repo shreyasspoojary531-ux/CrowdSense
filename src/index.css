@@ -75,41 +75,49 @@
   --signal-medium: #F59E0B;
   --signal-high: #EF4444;
 
-  /* Dark surface */
-  --color-bg: #08080B;
-  --color-bg-2: #0E0E13;
-  --color-surface: rgba(255, 255, 255, 0.035);
-  --color-surface-2: rgba(255, 255, 255, 0.06);
-  --color-surface-3: rgba(255, 255, 255, 0.1);
-  --color-border: rgba(255, 255, 255, 0.08);
-  --color-text: #EDEAF5;
-  --color-text-muted: #7878A0;
-  --color-text-soft: #4A4A65;
-  --color-sidebar-bg: rgba(8, 8, 11, 0.88);
-  --color-nav-bg: rgba(8, 8, 11, 0.86);
-  /* Premium glass: gradient from lighter top-left to darker bottom-right — bevel effect */
-  --glass-bg: linear-gradient(145deg, rgba(255,255,255,0.085) 0%, rgba(255,255,255,0.028) 100%);
-  --glass-border: rgba(255, 255, 255, 0.11);
+  /* Dark surface — faint orange warmth unifies with the orange bevel language */
+  --color-bg: #080705;
+  --color-bg-2: #0E0C09;
+  --color-surface: rgba(255, 130, 30, 0.045);
+  --color-surface-2: rgba(255, 130, 30, 0.075);
+  --color-surface-3: rgba(255, 130, 30, 0.115);
+  --color-border: rgba(255, 122, 0, 0.13);
+  --color-text: #EDE8E0;
+  --color-text-muted: #7A7260;
+  --color-text-soft: #4A4435;
+  --color-sidebar-bg: rgba(6, 4, 2, 0.93);
+  --color-nav-bg: rgba(6, 4, 2, 0.91);
+  /*
+   * TRUE DARK GLASS — smoked obsidian with brand-orange warmth bleeding from top-left.
+   * The glass body is near-opaque dark; the bevel edges catch orange light (not white).
+   */
+  --glass-bg: linear-gradient(
+    145deg,
+    rgba(60, 26, 5, 0.76)   0%,
+    rgba(18, 8,  2, 0.86)  50%,
+    rgba(5,  2,  0, 0.94) 100%
+  );
+  --glass-border: rgba(255, 122, 0, 0.18);
   --glass-shadow:
-    /* Outer ambient depth */
-    0 1px 2px rgba(0,0,0,0.6),
-    0 6px 18px rgba(0,0,0,0.45),
-    0 18px 52px rgba(0,0,0,0.38),
-    /* Top bevel — light catch from above */
-    inset 0 1px 0 rgba(255,255,255,0.14),
-    inset 1px 0 0 rgba(255,255,255,0.07),
-    /* Bottom/right recession — physical depth */
-    inset 0 -1px 0 rgba(0,0,0,0.45),
-    inset -1px 0 0 rgba(0,0,0,0.22);
+    /* Deep outer ambient — heavy darkness */
+    0 1px 2px  rgba(0, 0, 0, 0.78),
+    0 6px 20px rgba(0, 0, 0, 0.60),
+    0 20px 56px rgba(0, 0, 0, 0.50),
+    /* Orange bevel — top and left edges catch warm light */
+    inset 0  1px 0 rgba(255, 160,  60, 0.34),
+    inset 1px 0  0 rgba(255, 140,  40, 0.17),
+    /* Dark recession — bottom and right fall into shadow */
+    inset 0 -1px 0 rgba(0, 0, 0, 0.68),
+    inset -1px 0 0 rgba(0, 0, 0, 0.40);
   --glass-shadow-strong:
-    0 2px 4px rgba(0,0,0,0.7),
-    0 12px 32px rgba(0,0,0,0.58),
-    0 32px 80px rgba(0,0,0,0.52),
-    inset 0 1px 0 rgba(255,255,255,0.16),
-    inset 1px 0 0 rgba(255,255,255,0.08),
-    inset 0 -1px 0 rgba(0,0,0,0.5),
-    inset -1px 0 0 rgba(0,0,0,0.26);
-  --grid-line: rgba(255, 255, 255, 0.04);
+    0 2px 4px  rgba(0, 0, 0, 0.84),
+    0 12px 36px rgba(0, 0, 0, 0.70),
+    0 36px 88px rgba(0, 0, 0, 0.60),
+    inset 0  1px 0 rgba(255, 165,  65, 0.40),
+    inset 1px 0  0 rgba(255, 145,  45, 0.22),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.74),
+    inset -1px 0 0 rgba(0, 0, 0, 0.46);
+  --grid-line: rgba(255, 122, 0, 0.06);
 }
 
 
@@ -227,6 +235,39 @@ button {
 .glass-card:hover {
   transform: translateY(-2px);
   box-shadow: var(--glass-shadow-strong), 0 0 0 1px rgba(255, 122, 0, 0.09);
+}
+
+/* ── Dark mode: true dark glass backdrop + orange light sweep ── */
+.dark .glass-card {
+  backdrop-filter: blur(52px) saturate(1.45) brightness(0.72);
+  -webkit-backdrop-filter: blur(52px) saturate(1.45) brightness(0.72);
+}
+
+/* Orange light refraction sweeping across the dark glass face */
+.dark .glass-card::before {
+  background: linear-gradient(
+    148deg,
+    rgba(255, 150, 50, 0.22)  0%,
+    rgba(255, 120, 30, 0.10) 26%,
+    rgba(255,  90, 15, 0.02) 52%,
+    transparent               70%
+  );
+}
+
+/* Deeper bottom-right vignette for dark glass */
+.dark .glass-card::after {
+  background: linear-gradient(
+    148deg,
+    transparent              50%,
+    rgba(0, 0, 0, 0.16)     76%,
+    rgba(0, 0, 0, 0.28)    100%
+  );
+}
+
+/* Light mode: white glass — stronger frost, whiter sweep */
+.glass-card {
+  backdrop-filter: blur(32px) saturate(2.2) brightness(1.1);
+  -webkit-backdrop-filter: blur(32px) saturate(2.2) brightness(1.1);
 }
 
 
@@ -412,6 +453,16 @@ button {
   -webkit-backdrop-filter: blur(40px) saturate(1.7);
   z-index: 90;
   transition: width 220ms ease, transform 220ms ease;
+}
+
+.dark .sidebar {
+  backdrop-filter: blur(56px) saturate(1.5) brightness(0.7);
+  -webkit-backdrop-filter: blur(56px) saturate(1.5) brightness(0.7);
+  box-shadow:
+    /* Orange edge light on right border of sidebar — like a lit rim */
+    inset -1px 0 0 rgba(255, 122, 0, 0.16),
+    inset 0 1px 0 rgba(255, 140, 40, 0.12),
+    4px 0 48px rgba(0, 0, 0, 0.6);
 }
 
 .sidebar-top,
@@ -800,6 +851,16 @@ button {
     0 4px 20px rgba(0,0,0,0.22);
   backdrop-filter: blur(36px) saturate(1.7);
   -webkit-backdrop-filter: blur(36px) saturate(1.7);
+}
+
+.dark .nav-bar {
+  backdrop-filter: blur(52px) saturate(1.45) brightness(0.68);
+  -webkit-backdrop-filter: blur(52px) saturate(1.45) brightness(0.68);
+  box-shadow:
+    /* Orange rim light on the top edge */
+    inset 0 1px 0 rgba(255, 150, 45, 0.20),
+    0 1px 0 rgba(0, 0, 0, 0.45),
+    0 4px 28px rgba(0, 0, 0, 0.50);
 }
 
 .nav-inner,
@@ -2122,6 +2183,137 @@ button {
   grid-template-columns: minmax(0, 1fr) minmax(290px, 0.75fr);
 }
 
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   DARK MODE — ORANGE BEVEL OVERRIDES
+   Every surface that had white inset highlights now uses warm orange light.
+   This creates the Apple-quality "smoked glass with heated rim" look.
+   ───────────────────────────────────────────────────────────────────────── */
+
+/* Search inputs — pressed-in dark well with orange top rim */
+.dark .search-shell {
+  background: linear-gradient(145deg, rgba(255,130,30,0.07) 0%, rgba(4,2,0,0.65) 100%);
+  box-shadow:
+    inset 0  1px 0 rgba(255, 150, 45, 0.18),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.55),
+    inset 1px 0  0 rgba(255, 130, 35, 0.08),
+    inset -1px 0 0 rgba(0, 0, 0, 0.30);
+}
+.dark .search-shell:focus-within {
+  border-color: var(--brand-primary);
+  box-shadow:
+    0 0 0 3px rgba(255, 122, 0, 0.15),
+    inset 0  1px 0 rgba(255, 150, 45, 0.22),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.55),
+    inset 1px 0  0 rgba(255, 130, 35, 0.10),
+    inset -1px 0 0 rgba(0, 0, 0, 0.30);
+}
+
+/* Sidebar cards — dark glass panels with orange bevel */
+.dark .sidebar-import,
+.dark .sidebar-live-card {
+  background: linear-gradient(145deg, rgba(50,22,5,0.72) 0%, rgba(10,4,1,0.88) 100%);
+  box-shadow:
+    inset 0  1px 0 rgba(255, 155, 50, 0.26),
+    inset 1px 0  0 rgba(255, 135, 35, 0.13),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.62),
+    inset -1px 0 0 rgba(0, 0, 0, 0.36),
+    0 4px 18px rgba(0, 0, 0, 0.40);
+  backdrop-filter: blur(20px) brightness(0.78);
+  -webkit-backdrop-filter: blur(20px) brightness(0.78);
+}
+
+/* Stat grid cells — dark bevel with orange top catch */
+.dark .hero-signal-grid > div {
+  background: linear-gradient(145deg, rgba(50,22,5,0.65) 0%, rgba(8,3,0,0.82) 100%);
+  box-shadow:
+    inset 0  1px 0 rgba(255, 150, 45, 0.22),
+    inset 1px 0  0 rgba(255, 130, 35, 0.11),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.58),
+    inset -1px 0 0 rgba(0, 0, 0, 0.32);
+}
+
+/* Place / detail icon chips */
+.dark .place-card-icon,
+.dark .detail-place-icon {
+  background: linear-gradient(145deg, rgba(50,22,5,0.70) 0%, rgba(10,4,1,0.88) 100%);
+  box-shadow:
+    inset 0  1px 0 rgba(255, 150, 45, 0.24),
+    inset 1px 0  0 rgba(255, 130, 35, 0.12),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.60),
+    inset -1px 0 0 rgba(0, 0, 0, 0.34);
+}
+
+/* Signal / leaderboard rows — dark glass cards with orange top rim */
+.dark .signal-item,
+.dark .leaderboard-item {
+  background: linear-gradient(145deg, rgba(48,21,4,0.62) 0%, rgba(8,3,0,0.80) 100%);
+  box-shadow:
+    inset 0  1px 0 rgba(255, 148, 44, 0.20),
+    inset 1px 0  0 rgba(255, 128, 32, 0.10),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.54),
+    inset -1px 0 0 rgba(0, 0, 0, 0.30);
+}
+.dark .signal-item:hover,
+.dark .leaderboard-item:hover {
+  border-color: rgba(255, 122, 0, 0.30);
+  box-shadow:
+    0 6px 22px rgba(255, 100, 0, 0.16),
+    inset 0  1px 0 rgba(255, 155, 50, 0.28),
+    inset 1px 0  0 rgba(255, 135, 35, 0.14),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.56),
+    inset -1px 0 0 rgba(0, 0, 0, 0.32);
+}
+
+/* Activity feed items */
+.dark .feed-item {
+  background: linear-gradient(145deg, rgba(48,21,4,0.62) 0%, rgba(8,3,0,0.80) 100%);
+  box-shadow:
+    inset 0  1px 0 rgba(255, 148, 44, 0.20),
+    inset 1px 0  0 rgba(255, 128, 32, 0.10),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.54),
+    inset -1px 0 0 rgba(0, 0, 0, 0.30);
+}
+
+/* Stat chips / badges */
+.dark .stat-chip {
+  background: linear-gradient(145deg, rgba(46,20,4,0.68) 0%, rgba(8,3,0,0.84) 100%);
+  box-shadow:
+    inset 0  1px 0 rgba(255, 145, 42, 0.22),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.50);
+}
+
+/* Secondary button — dark glass pill with orange rim */
+.dark .btn-secondary {
+  background: linear-gradient(145deg, rgba(50,22,5,0.68) 0%, rgba(10,4,1,0.84) 100%);
+  box-shadow:
+    inset 0  1px 0 rgba(255, 155, 50, 0.22),
+    inset 1px 0  0 rgba(255, 135, 38, 0.11),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.58),
+    inset -1px 0 0 rgba(0, 0, 0, 0.32);
+}
+.dark .btn-secondary:hover {
+  background: linear-gradient(145deg, rgba(60,26,6,0.72) 0%, rgba(14,6,1,0.86) 100%);
+  box-shadow:
+    0 6px 20px rgba(0, 0, 0, 0.38),
+    inset 0  1px 0 rgba(255, 155, 50, 0.26),
+    inset 1px 0  0 rgba(255, 135, 38, 0.13),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.60),
+    inset -1px 0 0 rgba(0, 0, 0, 0.34);
+}
+
+/* Chart tooltip — dark glass popup with orange bevel */
+.dark .chart-tooltip {
+  background: linear-gradient(145deg, rgba(55,24,5,0.88) 0%, rgba(8,3,0,0.96) 100%);
+  border-color: rgba(255, 122, 0, 0.22);
+  box-shadow:
+    0 8px 28px rgba(0, 0, 0, 0.65),
+    0 24px 60px rgba(0, 0, 0, 0.50),
+    inset 0  1px 0 rgba(255, 158, 52, 0.30),
+    inset 1px 0  0 rgba(255, 138, 40, 0.15),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.65),
+    inset -1px 0 0 rgba(0, 0, 0, 0.38);
+}
 
 /* ─────────────────────────────────────────────────────────────────────────────
    ACTIVE PRESS STATES
