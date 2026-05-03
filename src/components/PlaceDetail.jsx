@@ -231,15 +231,16 @@ export function PlaceDetail({ place, crowdState, onBack }) {
               </div>
             </div>
           )}
-
-          <PredictionChart
-            data={prediction}
-            highlightHour={selectedHour}
-            title="Live forecast"
-            subtitle={`${realtimeModeLabel} blended with the last ${reportSummary?.sampleSize || 0} reports.`}
-          />
         </div>
       </div>
+
+      {/* ── Full-width Live Forecast chart ── */}
+      <PredictionChart
+        data={prediction}
+        highlightHour={selectedHour}
+        title="Live forecast"
+        subtitle={`${realtimeModeLabel} blended with the last ${reportSummary?.sampleSize || 0} reports.`}
+      />
 
       {/* ── Section Divider ── */}
       <div className="detail-divider" role="separator" aria-hidden="true">
