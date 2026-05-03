@@ -1723,6 +1723,59 @@ button {
   width: fit-content;
 }
 
+/* ── Section divider ── */
+.detail-divider {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 8px 0 4px;
+}
+
+.detail-divider-line {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--color-border) 30%, var(--color-border) 70%, transparent);
+}
+
+.detail-divider-text {
+  flex-shrink: 0;
+  font-size: 0.74rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  padding: 4px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: 100px;
+  background: var(--color-surface-2);
+}
+
+/* ── Section label row ── */
+.detail-section-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: -4px;
+}
+
+.detail-section-tag {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--brand-primary);
+  background: rgba(249,115,22,0.1);
+  border: 1px solid rgba(249,115,22,0.2);
+  border-radius: 100px;
+  padding: 2px 10px;
+}
+
+.detail-section-title {
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+  font-weight: 500;
+}
+
 .detail-grid {
   grid-template-columns: minmax(0, 1fr) minmax(350px, 1fr);
   align-items: start;

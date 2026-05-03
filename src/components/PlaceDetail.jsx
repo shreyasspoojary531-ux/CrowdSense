@@ -14,20 +14,12 @@ import { TimeSlider } from "./TimeSlider";
 import { LiveReportFeed } from "./LiveReportFeed";
 import { AnimatedNumber } from "./AnimatedNumber";
 
-/** Map crowd level to its CSS custom-property colour. */
 const LEVEL_COLOR = {
   High: "var(--signal-high)",
   Medium: "var(--signal-medium)",
   Low: "var(--signal-low)",
 };
 
-/**
- * Detailed venue view with a live capacity ring, time-travel slider,
- * prediction chart, visitor-intent form, and a report submission panel.
- *
- * If getDetail() throws (e.g. due to corrupt place data), a graceful
- * inline error message is shown instead of crashing the component tree.
- */
 export function PlaceDetail({ place, crowdState, onBack }) {
   const {
     getCrowdAtHour,
@@ -41,7 +33,6 @@ export function PlaceDetail({ place, crowdState, onBack }) {
     realtimeModeLabel,
   } = crowdState;
 
-  // ── Safely derive detail data ──
   let detailData = null;
   let detailError = null;
   try {
@@ -73,10 +64,8 @@ export function PlaceDetail({ place, crowdState, onBack }) {
 
   async function handleReport() {
     if (!selectedReport || isSubmittingReport) return;
-
     setIsSubmittingReport(true);
     setReportStatus("Updating CrowdSense system...");
-
     try {
       await submitReport(place.id, selectedReport, { placeName: place.name });
       setReportStatus("Live crowd recalculated");
@@ -99,7 +88,6 @@ export function PlaceDetail({ place, crowdState, onBack }) {
     window.setTimeout(() => setIntentSubmitted(false), 4000);
   }
 
-  // ── Render error fallback if detail fetch failed ──
   if (detailError) {
     return (
       <div className="detail-shell">
@@ -107,11 +95,7 @@ export function PlaceDetail({ place, crowdState, onBack }) {
           <ArrowLeft size={16} aria-hidden="true" />
           <span>Back to command center</span>
         </button>
-        <div
-          className="glass-card"
-          role="alert"
-          style={{ padding: "32px", textAlign: "center", marginTop: "24px" }}
-        >
+        <div className="glass-card" role="alert" style={{ padding: "32px", textAlign: "center", marginTop: "24px" }}>
           <p>Could not load venue details. Please go back and try again.</p>
         </div>
       </div>
@@ -121,7 +105,6 @@ export function PlaceDetail({ place, crowdState, onBack }) {
   const activeCrowd =
     Math.abs(selectedHour - currentHour) < 0.25 ? liveCrowd : crowdAtSelected || liveCrowd;
   const activeColor = LEVEL_COLOR[activeCrowd?.level] || LEVEL_COLOR.Low;
-
   const isPeak = activeCrowd?.level === "High";
   const crowdedWarning = isBecomingCrowded(place.id, selectedHour);
   const commitCount = getCommitmentCount(place.id, selectedHour);
@@ -135,8 +118,16 @@ export function PlaceDetail({ place, crowdState, onBack }) {
         <span>Back to command center</span>
       </button>
 
+      {/* ══════════════════════════════════════════════
+          SECTION 1 — Realtime venue · Best time · Analytics
+          ══════════════════════════════════════════════ */}
+      <div className="detail-section-label">
+        <span className="detail-section-tag">Section 1</span>
+        <span className="detail-section-title">Realtime venue &amp; Analytics</span>
+      </div>
+
       <div className="detail-grid">
-        {/* ── Left column ── */}
+        {/* Left — venue hero */}
         <div className="detail-left">
           <div className="glass-card detail-hero-card">
             <div className="detail-header">
@@ -149,7 +140,6 @@ export function PlaceDetail({ place, crowdState, onBack }) {
             </div>
 
             <div className="detail-capacity-panel">
-              {/* Capacity ring */}
               <div className="detail-capacity-ring">
                 <svg
                   width="136"
@@ -160,15 +150,12 @@ export function PlaceDetail({ place, crowdState, onBack }) {
                 >
                   <circle cx="68" cy="68" r="54" className="capacity-track" />
                   <circle
-                    cx="68"
-                    cy="68"
-                    r="54"
+                    cx="68" cy="68" r="54"
                     className="capacity-progress"
                     style={{
                       stroke: activeColor,
                       strokeDasharray: circleCircumference,
-                      strokeDashoffset:
-                        circleCircumference * (1 - (activeCrowd?.percent ?? 0) / 100),
+                      strokeDashoffset: circleCircumference * (1 - (activeCrowd?.percent ?? 0) / 100),
                     }}
                   />
                 </svg>
@@ -181,9 +168,7 @@ export function PlaceDetail({ place, crowdState, onBack }) {
               </div>
 
               <div className="detail-capacity-meta">
-                <div
-                  className={`status-${(activeCrowd?.level ?? "low").toLowerCase()} detail-level-pill`}
-                >
+                <div className={`status-${(activeCrowd?.level ?? "low").toLowerCase()} detail-level-pill`}>
                   <span
                     className="animate-pulse-dot place-level-dot"
                     style={{ background: activeColor }}
@@ -211,7 +196,69 @@ export function PlaceDetail({ place, crowdState, onBack }) {
               <span>{tip}</span>
             </div>
           </div>
+        </div>
 
+        {/* Right — best time + forecast */}
+        <div className="detail-right">
+          <div className="best-time-card">
+            <div className="best-time-copy">
+              <div className="section-kicker">AI recommendation</div>
+              <h2>Best time to visit: {best?.label}</h2>
+              <p>
+                Expected {best?.level?.toLowerCase()} crowd with up to{" "}
+                {Math.max(5, Math.round(((liveCrowd?.score ?? 0) - (best?.score ?? 0)) * 30) + 5)}{" "}
+                minutes saved.
+              </p>
+            </div>
+          </div>
+
+          {crowdedWarning && (
+            <div className="impact-card" role="alert">
+              <TriangleAlert size={18} aria-hidden="true" />
+              <div>
+                <strong>Tipping point reached</strong>
+                <span>Users are converging on this slot, so CrowdSense has steepened the live forecast.</span>
+              </div>
+            </div>
+          )}
+
+          {isPeak && !crowdedWarning && (
+            <div className="peak-warning" role="alert">
+              <Flame size={18} aria-hidden="true" />
+              <div>
+                <strong>Peak crowd detected</strong>
+                <span>Traffic is naturally elevated right now and wait times are stretched.</span>
+              </div>
+            </div>
+          )}
+
+          <PredictionChart
+            data={prediction}
+            highlightHour={selectedHour}
+            title="Live forecast"
+            subtitle={`${realtimeModeLabel} blended with the last ${reportSummary?.sampleSize || 0} reports.`}
+          />
+        </div>
+      </div>
+
+      {/* ── Section Divider ── */}
+      <div className="detail-divider" role="separator" aria-hidden="true">
+        <span className="detail-divider-line" />
+        <span className="detail-divider-text">Actions &amp; Live Reports</span>
+        <span className="detail-divider-line" />
+      </div>
+
+      {/* ══════════════════════════════════════════════
+          SECTION 2 — Time travel · Intent · Reports · Feed
+          ══════════════════════════════════════════════ */}
+      <div className="detail-section-label">
+        <span className="detail-section-tag">Section 2</span>
+        <span className="detail-section-title">Time travel, reporting &amp; live feed</span>
+      </div>
+
+      <div className="detail-grid">
+        {/* Left — time slider + visitor intent */}
+        <div className="detail-left">
           <TimeSlider
             value={selectedHour}
             min={minHour}
@@ -220,7 +267,6 @@ export function PlaceDetail({ place, crowdState, onBack }) {
             crowdAtTime={crowdAtSelected}
           />
 
-          {/* Visitor intent card */}
           <div className="glass-card intent-card">
             <div className="section-heading">
               <div>
@@ -247,50 +293,8 @@ export function PlaceDetail({ place, crowdState, onBack }) {
           </div>
         </div>
 
-        {/* ── Right column ── */}
+        {/* Right — report submission + live feed */}
         <div className="detail-right">
-          <div className="best-time-card">
-            <div className="best-time-copy">
-              <div className="section-kicker">AI recommendation</div>
-              <h2>Best time to visit: {best?.label}</h2>
-              <p>
-                Expected {best?.level?.toLowerCase()} crowd with up to{" "}
-                {Math.max(5, Math.round(((liveCrowd?.score ?? 0) - (best?.score ?? 0)) * 30) + 5)}{" "}
-                minutes saved.
-              </p>
-            </div>
-          </div>
-
-          {crowdedWarning && (
-            <div className="impact-card" role="alert">
-              <TriangleAlert size={18} aria-hidden="true" />
-              <div>
-                <strong>Tipping point reached</strong>
-                <span>
-                  Users are converging on this slot, so CrowdSense has steepened the live forecast.
-                </span>
-              </div>
-            </div>
-          )}
-
-          {isPeak && !crowdedWarning && (
-            <div className="peak-warning" role="alert">
-              <Flame size={18} aria-hidden="true" />
-              <div>
-                <strong>Peak crowd detected</strong>
-                <span>Traffic is naturally elevated right now and wait times are stretched.</span>
-              </div>
-            </div>
-          )}
-
-          <PredictionChart
-            data={prediction}
-            highlightHour={selectedHour}
-            title="Live forecast"
-            subtitle={`${realtimeModeLabel} blended with the last ${reportSummary?.sampleSize || 0} reports.`}
-          />
-
-          {/* Report submission */}
           <div className="glass-card detail-report-card">
             <div className="section-heading">
               <div>
@@ -340,10 +344,7 @@ export function PlaceDetail({ place, crowdState, onBack }) {
                 ) : (
                   <RadioTower size={16} aria-hidden="true" />
                 )}
-                <span>
-                  {reportStatus}
-                  {isSuccessStatus ? " ⚡" : ""}
-                </span>
+                <span>{reportStatus}{isSuccessStatus ? " ⚡" : ""}</span>
               </div>
             )}
           </div>
