@@ -93,9 +93,9 @@
    */
   --glass-bg: linear-gradient(
     145deg,
-    rgba(60, 26, 5, 0.76)   0%,
-    rgba(18, 8,  2, 0.86)  50%,
-    rgba(5,  2,  0, 0.94) 100%
+    rgba(22, 10, 2, 0.82)  0%,
+    rgba(10, 4,  1, 0.90) 55%,
+    rgba(4,  2,  0, 0.96) 100%
   );
   --glass-border: rgba(255, 122, 0, 0.18);
   --glass-shadow:
@@ -243,14 +243,13 @@ button {
   -webkit-backdrop-filter: blur(52px) saturate(1.45) brightness(0.72);
 }
 
-/* Orange light refraction sweeping across the dark glass face */
+/* Subtle orange warmth on dark glass face — very soft, edges do the heavy lifting */
 .dark .glass-card::before {
   background: linear-gradient(
     148deg,
-    rgba(255, 150, 50, 0.22)  0%,
-    rgba(255, 120, 30, 0.10) 26%,
-    rgba(255,  90, 15, 0.02) 52%,
-    transparent               70%
+    rgba(255, 140, 40, 0.07)  0%,
+    rgba(255, 110, 25, 0.03) 30%,
+    transparent               55%
   );
 }
 
@@ -2192,7 +2191,7 @@ button {
 
 /* Search inputs — pressed-in dark well with orange top rim */
 .dark .search-shell {
-  background: linear-gradient(145deg, rgba(255,130,30,0.07) 0%, rgba(4,2,0,0.65) 100%);
+  background: linear-gradient(145deg, rgba(16,7,1,0.70) 0%, rgba(4,2,0,0.82) 100%);
   box-shadow:
     inset 0  1px 0 rgba(255, 150, 45, 0.18),
     inset 0 -1px 0 rgba(0, 0, 0, 0.55),
@@ -2212,7 +2211,7 @@ button {
 /* Sidebar cards — dark glass panels with orange bevel */
 .dark .sidebar-import,
 .dark .sidebar-live-card {
-  background: linear-gradient(145deg, rgba(50,22,5,0.72) 0%, rgba(10,4,1,0.88) 100%);
+  background: linear-gradient(145deg, rgba(18,8,2,0.78) 0%, rgba(6,2,0,0.92) 100%);
   box-shadow:
     inset 0  1px 0 rgba(255, 155, 50, 0.26),
     inset 1px 0  0 rgba(255, 135, 35, 0.13),
@@ -2225,7 +2224,7 @@ button {
 
 /* Stat grid cells — dark bevel with orange top catch */
 .dark .hero-signal-grid > div {
-  background: linear-gradient(145deg, rgba(50,22,5,0.65) 0%, rgba(8,3,0,0.82) 100%);
+  background: linear-gradient(145deg, rgba(16,7,1,0.72) 0%, rgba(5,2,0,0.88) 100%);
   box-shadow:
     inset 0  1px 0 rgba(255, 150, 45, 0.22),
     inset 1px 0  0 rgba(255, 130, 35, 0.11),
@@ -2236,7 +2235,7 @@ button {
 /* Place / detail icon chips */
 .dark .place-card-icon,
 .dark .detail-place-icon {
-  background: linear-gradient(145deg, rgba(50,22,5,0.70) 0%, rgba(10,4,1,0.88) 100%);
+  background: linear-gradient(145deg, rgba(18,8,2,0.75) 0%, rgba(6,2,0,0.92) 100%);
   box-shadow:
     inset 0  1px 0 rgba(255, 150, 45, 0.24),
     inset 1px 0  0 rgba(255, 130, 35, 0.12),
@@ -2247,7 +2246,7 @@ button {
 /* Signal / leaderboard rows — dark glass cards with orange top rim */
 .dark .signal-item,
 .dark .leaderboard-item {
-  background: linear-gradient(145deg, rgba(48,21,4,0.62) 0%, rgba(8,3,0,0.80) 100%);
+  background: linear-gradient(145deg, rgba(16,7,1,0.68) 0%, rgba(5,2,0,0.84) 100%);
   box-shadow:
     inset 0  1px 0 rgba(255, 148, 44, 0.20),
     inset 1px 0  0 rgba(255, 128, 32, 0.10),
@@ -2267,7 +2266,7 @@ button {
 
 /* Activity feed items */
 .dark .feed-item {
-  background: linear-gradient(145deg, rgba(48,21,4,0.62) 0%, rgba(8,3,0,0.80) 100%);
+  background: linear-gradient(145deg, rgba(16,7,1,0.68) 0%, rgba(5,2,0,0.84) 100%);
   box-shadow:
     inset 0  1px 0 rgba(255, 148, 44, 0.20),
     inset 1px 0  0 rgba(255, 128, 32, 0.10),
@@ -2277,7 +2276,7 @@ button {
 
 /* Stat chips / badges */
 .dark .stat-chip {
-  background: linear-gradient(145deg, rgba(46,20,4,0.68) 0%, rgba(8,3,0,0.84) 100%);
+  background: linear-gradient(145deg, rgba(16,7,1,0.72) 0%, rgba(5,2,0,0.88) 100%);
   box-shadow:
     inset 0  1px 0 rgba(255, 145, 42, 0.22),
     inset 0 -1px 0 rgba(0, 0, 0, 0.50);
@@ -2285,7 +2284,7 @@ button {
 
 /* Secondary button — dark glass pill with orange rim */
 .dark .btn-secondary {
-  background: linear-gradient(145deg, rgba(50,22,5,0.68) 0%, rgba(10,4,1,0.84) 100%);
+  background: linear-gradient(145deg, rgba(18,8,2,0.74) 0%, rgba(6,2,0,0.88) 100%);
   box-shadow:
     inset 0  1px 0 rgba(255, 155, 50, 0.22),
     inset 1px 0  0 rgba(255, 135, 38, 0.11),
@@ -2293,7 +2292,7 @@ button {
     inset -1px 0 0 rgba(0, 0, 0, 0.32);
 }
 .dark .btn-secondary:hover {
-  background: linear-gradient(145deg, rgba(60,26,6,0.72) 0%, rgba(14,6,1,0.86) 100%);
+  background: linear-gradient(145deg, rgba(22,10,2,0.78) 0%, rgba(8,3,0,0.90) 100%);
   box-shadow:
     0 6px 20px rgba(0, 0, 0, 0.38),
     inset 0  1px 0 rgba(255, 155, 50, 0.26),
@@ -2304,7 +2303,7 @@ button {
 
 /* Chart tooltip — dark glass popup with orange bevel */
 .dark .chart-tooltip {
-  background: linear-gradient(145deg, rgba(55,24,5,0.88) 0%, rgba(8,3,0,0.96) 100%);
+  background: linear-gradient(145deg, rgba(18,8,2,0.92) 0%, rgba(4,2,0,0.98) 100%);
   border-color: rgba(255, 122, 0, 0.22);
   box-shadow:
     0 8px 28px rgba(0, 0, 0, 0.65),
