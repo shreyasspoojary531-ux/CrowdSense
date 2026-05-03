@@ -9,9 +9,9 @@
     "start": "node server.js",
     "lint": "eslint .",
     "preview": "vite preview",
-    "test": "jest --config jest.config.cjs",
+    "test": "jest --config jest.config.cjs --forceExit",
     "test:watch": "jest --config jest.config.cjs --watch",
-    "test:coverage": "jest --config jest.config.cjs --coverage"
+    "test:coverage": "jest --config jest.config.cjs --coverage --forceExit"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.2.2",

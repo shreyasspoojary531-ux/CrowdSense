@@ -106,6 +106,21 @@ app.use(
   })
 );
 
+// ── Health check endpoint ──────────────────────────────────────────────────
+// Excluded from both rate limiters so monitoring tools never get throttled.
+// Returns uptime, environment, and the git commit SHA when available.
+const COMMIT_SHA = process.env.GIT_COMMIT_SHA || process.env.RENDER_GIT_COMMIT || "dev";
+
+app.get("/health", (_req, res) => {
+  res.json({
+    status:  "ok",
+    uptime:  Math.floor(process.uptime()),
+    env:     IS_PROD ? "production" : "development",
+    commit:  COMMIT_SHA,
+    ts:      new Date().toISOString(),
+  });
+});
+
 // ── SPA fallback — GET only ────────────────────────────────────────────────
 // htmlLimiter applied here so every index.html load (page refresh / direct
 // navigation) counts against the tighter per-IP HTML window.
