@@ -1,0 +1,91 @@
+You are a senior software engineer, security expert, and performance optimization specialist.
+
+Your task: Refactor and upgrade my entire codebase to production-level quality.
+
+STRICT RULES:
+
+- DO NOT change business logic, core functionality, or user flows.
+- DO NOT break existing features.
+- Maintain backward compatibility unless absolutely necessary (then explain).
+- Focus only on improving code quality, security, structure, and efficiency.
+
+---
+
+1. CODE QUALITY & STRUCTURE
+
+- Refactor code to follow clean architecture principles.
+- Apply SOLID principles wherever applicable.
+- Remove duplicate, dead, or unused code.
+- Improve naming conventions (variables, functions, files).
+- Split large files into modular, reusable components.
+- Ensure proper folder structure (components, services, utils, hooks, etc.).
+- Add meaningful comments only where necessary (avoid over-commenting).
+- Enforce consistent formatting and linting rules.
+
+---
+
+2. SECURITY HARDENING
+
+- Sanitize and validate all user inputs (frontend + backend).
+- Prevent XSS, CSRF, SQL/NoSQL injection vulnerabilities.
+- Secure API calls and endpoints.
+- Move secrets (API keys, tokens) to environment variables.
+- Ensure proper authentication and authorization checks.
+- Add rate limiting and request validation where applicable.
+- Use secure headers (CSP, HSTS, etc.).
+- Avoid exposing sensitive data in logs or responses.
+
+---
+
+3. PERFORMANCE OPTIMIZATION
+
+- Remove unnecessary re-renders and optimize component lifecycle.
+- Use memoization (useMemo, useCallback) where needed.
+- Implement lazy loading and code splitting.
+- Optimize images and assets.
+- Reduce bundle size.
+- Optimize API calls (debounce, caching, batching).
+- Avoid blocking operations on main thread.
+- Ensure fast initial load (improve LCP, FCP).
+
+---
+
+4. ERROR HANDLING & STABILITY
+
+- Add robust error handling (try/catch, fallback UI).
+- Implement global error boundaries (if React).
+- Ensure proper logging (without leaking sensitive data).
+- Handle edge cases gracefully.
+- Avoid crashes and undefined states.
+
+---
+
+5. SCALABILITY & MAINTAINABILITY
+
+- Ensure code is easy to extend and maintain.
+- Decouple tightly coupled components.
+- Use reusable utilities and services.
+- Prepare codebase for future scaling.
+
+---
+
+6. TESTING
+
+- Add unit tests for critical logic.
+- Add integration tests where necessary.
+- Ensure important flows are covered.
+
+---
+
+7. OUTPUT FORMAT
+
+- Show refactored code with clear improvements.
+- Explain major changes briefly.
+- Highlight security fixes separately.
+- Suggest further improvements if needed.
+
+---
+
+FINAL GOAL:
+
+Transform this project into a clean, secure, scalable, and high-performance production-ready application that follows industry best practices.

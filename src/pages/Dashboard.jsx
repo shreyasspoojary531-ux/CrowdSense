@@ -7,24 +7,15 @@ import {
   RadioTower,
   TrendingUp,
 } from "lucide-react";
+import { motion } from "framer-motion";
 import { PlaceCard } from "../components/PlaceCard";
 import { LiveReportFeed } from "../components/LiveReportFeed";
 import { MetricCard } from "../components/common/MetricCard";
 import { TypewriterText } from "../components/common/TypewriterText";
+import { fadeUp, staggerContainer } from "../components/motion/variants";
 
-/** Words cycled by the hero typewriter animation. */
 const TYPEWRITER_WORDS = ["Move Smarter", "See it Happen"];
 
-/**
- * Dashboard page — high-level overview of live crowd intelligence.
- *
- * Renders the hero section, key metrics, the "best places now" signal panel,
- * the global live report feed, and a featured place card grid.
- *
- * All heavy data (crowds, sorted lists, averages) is computed and memoised
- * in the parent App component and passed in as props to keep this component
- * a pure, fast renderer.
- */
 export const Dashboard = memo(function Dashboard({
   crowds,
   quietPlaces,
@@ -41,9 +32,18 @@ export const Dashboard = memo(function Dashboard({
   const quietCount = crowds.filter((item) => item.crowd.level === "Low").length;
 
   return (
-    <div className="page-stack">
+    <motion.div
+      className="page-stack"
+      variants={staggerContainer(0.09, 0)}
+      initial="hidden"
+      animate="show"
+    >
       {/* ── Hero ── */}
-      <section className="glass-card hero-panel animate-fade-up" aria-labelledby="hero-heading">
+      <motion.section
+        className="glass-card hero-panel"
+        variants={fadeUp}
+        aria-labelledby="hero-heading"
+      >
         <div className="hero-copy">
           <div className="section-kicker">CrowdSense live system</div>
           <h1 id="hero-heading">
@@ -59,22 +59,26 @@ export const Dashboard = memo(function Dashboard({
             through places with realtime confidence.
           </p>
           <div className="hero-actions">
-            <button
+            <motion.button
               type="button"
               className="btn-primary hero-primary"
               onClick={() => onTabChange("report")}
+              whileHover={{ scale: 1.03, transition: { duration: 0.18 } }}
+              whileTap={{ scale: 0.96 }}
             >
               <PlusSquare size={16} aria-hidden="true" />
               <span>Add a live report</span>
-            </button>
-            <button
+            </motion.button>
+            <motion.button
               type="button"
               className="btn-secondary hero-secondary"
               onClick={() => onTabChange("explore")}
+              whileHover={{ scale: 1.03, transition: { duration: 0.18 } }}
+              whileTap={{ scale: 0.96 }}
             >
               <Compass size={16} aria-hidden="true" />
               <span>Explore places</span>
-            </button>
+            </motion.button>
           </div>
         </div>
 
@@ -98,19 +102,27 @@ export const Dashboard = memo(function Dashboard({
             </div>
           </dl>
         </div>
-      </section>
+      </motion.section>
 
       {/* ── Key Metrics ── */}
-      <section className="metric-grid" aria-label="Key metrics">
-        <MetricCard icon={Activity} label="Monitored places" value={allPlaces.length} tone="orange" />
-        <MetricCard icon={RadioTower} label="Live reports buffered" value={reportStats.totalReports} tone="orange" />
-        <MetricCard icon={Compass} label="Quiet spots right now" value={quietCount} tone="orange" />
-        <MetricCard icon={TrendingUp} label="Network average load" value={`${avgCapacity}%`} tone="orange" />
-      </section>
+      <motion.section
+        className="metric-grid"
+        variants={staggerContainer(0.07, 0.05)}
+        aria-label="Key metrics"
+      >
+        <MetricCard icon={Activity}    label="Monitored places"    value={allPlaces.length}             tone="orange" />
+        <MetricCard icon={RadioTower}  label="Live reports buffered" value={reportStats.totalReports}   tone="orange" />
+        <MetricCard icon={Compass}     label="Quiet spots right now" value={quietCount}                 tone="orange" />
+        <MetricCard icon={TrendingUp}  label="Network average load"  value={`${avgCapacity}%`}          tone="orange" />
+      </motion.section>
 
       {/* ── Signal Panel + Feed ── */}
-      <section className="dashboard-split">
-        <div className="glass-card signal-panel" aria-labelledby="best-places-heading">
+      <motion.section className="dashboard-split" variants={fadeUp}>
+        <motion.div
+          className="glass-card signal-panel"
+          aria-labelledby="best-places-heading"
+          variants={fadeUp}
+        >
           <div className="section-heading">
             <div>
               <div className="section-kicker">Go now</div>
@@ -119,9 +131,14 @@ export const Dashboard = memo(function Dashboard({
             </div>
           </div>
 
-          <ul className="signal-list" role="list" aria-label="Quietest venues right now">
+          <motion.ul
+            className="signal-list"
+            role="list"
+            aria-label="Quietest venues right now"
+            variants={staggerContainer(0.06, 0.1)}
+          >
             {quietPlaces.map(({ place, crowd }) => (
-              <li key={place.id} role="listitem">
+              <motion.li key={place.id} role="listitem" variants={fadeUp}>
                 <button
                   type="button"
                   className="signal-item"
@@ -137,29 +154,34 @@ export const Dashboard = memo(function Dashboard({
                     <ArrowUpRight size={15} aria-hidden="true" />
                   </div>
                 </button>
-              </li>
+              </motion.li>
             ))}
-          </ul>
-        </div>
+          </motion.ul>
+        </motion.div>
 
         <LiveReportFeed
           reports={globalLiveReports}
           title="Network activity"
           subtitle="Fresh reports are recalculating capacity and graph data across the app."
         />
-      </section>
+      </motion.section>
 
       {/* ── Featured Place Cards ── */}
-      <section className="dashboard-card-grid" aria-label="Featured venues">
+      <motion.section
+        className="dashboard-card-grid"
+        aria-label="Featured venues"
+        variants={staggerContainer(0.07, 0.05)}
+      >
         {quietPlaces.concat(busyPlaces.slice(0, 2)).map(({ place, crowd }) => (
-          <PlaceCard
-            key={place.id}
-            place={place}
-            crowd={crowd}
-            onClick={() => onSelectPlace(place)}
-          />
+          <motion.div key={place.id} variants={fadeUp}>
+            <PlaceCard
+              place={place}
+              crowd={crowd}
+              onClick={() => onSelectPlace(place)}
+            />
+          </motion.div>
         ))}
-      </section>
-    </div>
+      </motion.section>
+    </motion.div>
   );
 });

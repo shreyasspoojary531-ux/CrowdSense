@@ -9,10 +9,12 @@ import {
   Sparkles,
   TriangleAlert,
 } from "lucide-react";
+import { motion } from "framer-motion";
 import { PredictionChart } from "./PredictionChart";
 import { TimeSlider } from "./TimeSlider";
 import { LiveReportFeed } from "./LiveReportFeed";
 import { AnimatedNumber } from "./AnimatedNumber";
+import { fadeUp, staggerContainer } from "./motion/variants";
 
 const LEVEL_COLOR = {
   High: "var(--signal-high)",
@@ -112,21 +114,33 @@ export function PlaceDetail({ place, crowdState, onBack }) {
   const isSuccessStatus = reportStatus === "Live crowd recalculated";
 
   return (
-    <div className="detail-shell animate-fade-up">
-      <button type="button" onClick={onBack} className="btn-outline detail-back">
+    <motion.div
+      className="detail-shell"
+      variants={staggerContainer(0.1, 0)}
+      initial="hidden"
+      animate="show"
+    >
+      <motion.button
+        type="button"
+        onClick={onBack}
+        className="btn-outline detail-back"
+        variants={fadeUp}
+        whileHover={{ x: -3, transition: { duration: 0.15 } }}
+        whileTap={{ scale: 0.97 }}
+      >
         <ArrowLeft size={16} aria-hidden="true" />
         <span>Back to command center</span>
-      </button>
+      </motion.button>
 
       {/* ══════════════════════════════════════════════
           SECTION 1 — Realtime venue · Best time · Analytics
           ══════════════════════════════════════════════ */}
-      <div className="detail-section-label">
+      <motion.div className="detail-section-label" variants={fadeUp}>
         <span className="detail-section-tag">Section 1</span>
         <span className="detail-section-title">Realtime venue &amp; Analytics</span>
-      </div>
+      </motion.div>
 
-      <div className="detail-grid">
+      <motion.div className="detail-grid" variants={fadeUp}>
         {/* Left — venue hero */}
         <div className="detail-left">
           <div className="glass-card detail-hero-card">
@@ -232,32 +246,39 @@ export function PlaceDetail({ place, crowdState, onBack }) {
             </div>
           )}
         </div>
-      </div>
+      </motion.div>
 
       {/* ── Full-width Live Forecast chart ── */}
-      <PredictionChart
-        data={prediction}
-        highlightHour={selectedHour}
-        title="Live forecast"
-        subtitle={`${realtimeModeLabel} blended with the last ${reportSummary?.sampleSize || 0} reports.`}
-      />
+      <motion.div variants={fadeUp}>
+        <PredictionChart
+          data={prediction}
+          highlightHour={selectedHour}
+          title="Live forecast"
+          subtitle={`${realtimeModeLabel} blended with the last ${reportSummary?.sampleSize || 0} reports.`}
+        />
+      </motion.div>
 
       {/* ── Section Divider ── */}
-      <div className="detail-divider" role="separator" aria-hidden="true">
+      <motion.div
+        className="detail-divider"
+        role="separator"
+        aria-hidden="true"
+        variants={fadeUp}
+      >
         <span className="detail-divider-line" />
         <span className="detail-divider-text">Actions &amp; Live Reports</span>
         <span className="detail-divider-line" />
-      </div>
+      </motion.div>
 
       {/* ══════════════════════════════════════════════
           SECTION 2 — Time travel · Intent · Reports · Feed
           ══════════════════════════════════════════════ */}
-      <div className="detail-section-label">
+      <motion.div className="detail-section-label" variants={fadeUp}>
         <span className="detail-section-tag">Section 2</span>
         <span className="detail-section-title">Time travel, reporting &amp; live feed</span>
-      </div>
+      </motion.div>
 
-      <div className="detail-grid">
+      <motion.div className="detail-grid" variants={fadeUp}>
         {/* Left — time slider + visitor intent */}
         <div className="detail-left">
           <TimeSlider
@@ -277,10 +298,16 @@ export function PlaceDetail({ place, crowdState, onBack }) {
               </div>
             </div>
 
-            <button type="button" className="btn-primary" onClick={handleIntent}>
+            <motion.button
+              type="button"
+              className="btn-primary"
+              onClick={handleIntent}
+              whileHover={{ scale: 1.02, transition: { duration: 0.18 } }}
+              whileTap={{ scale: 0.96 }}
+            >
               <CalendarClock size={16} aria-hidden="true" />
               <span>{intentSubmitted ? "Visit scheduled" : "I will go at this time"}</span>
-            </button>
+            </motion.button>
 
             {commitCount > 0 && (
               <div className="intent-impact" role="note" aria-live="polite">
@@ -312,41 +339,53 @@ export function PlaceDetail({ place, crowdState, onBack }) {
               style={{ marginBottom: "12px" }}
             >
               {["Low", "Medium", "High"].map((level) => (
-                <button
+                <motion.button
                   key={level}
                   type="button"
                   className={`crowd-opt ${selectedReport === level ? `selected-${level.toLowerCase()}` : ""}`}
                   aria-pressed={selectedReport === level}
                   onClick={() => setSelectedReport(level)}
+                  whileHover={{ scale: 1.04, transition: { duration: 0.15 } }}
+                  whileTap={{ scale: 0.93 }}
                 >
                   {level}
-                </button>
+                </motion.button>
               ))}
             </div>
 
             <div className="detail-report-actions" style={{ marginTop: "8px" }}>
-              <button
+              <motion.button
                 type="button"
                 className="btn-primary"
                 onClick={handleReport}
                 disabled={isSubmittingReport}
                 aria-busy={isSubmittingReport}
                 style={{ width: "100%", padding: "16px" }}
+                whileHover={{ scale: 1.02, transition: { duration: 0.18 } }}
+                whileTap={{ scale: 0.97 }}
               >
                 <RadioTower size={16} aria-hidden="true" />
                 <span>Submit report</span>
-              </button>
+              </motion.button>
             </div>
 
             {reportStatus && (
-              <div className="report-status" role="status" aria-live="polite">
+              <motion.div
+                className="report-status"
+                role="status"
+                aria-live="polite"
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+              >
                 {isSuccessStatus ? (
                   <CheckCircle2 size={16} aria-hidden="true" />
                 ) : (
                   <RadioTower size={16} aria-hidden="true" />
                 )}
                 <span>{reportStatus}{isSuccessStatus ? " ⚡" : ""}</span>
-              </div>
+              </motion.div>
             )}
           </div>
 
@@ -357,7 +396,7 @@ export function PlaceDetail({ place, crowdState, onBack }) {
             emptyCopy="Be the first live signal for this venue."
           />
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }

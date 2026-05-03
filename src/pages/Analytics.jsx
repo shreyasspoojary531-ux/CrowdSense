@@ -1,12 +1,10 @@
 import React, { lazy, memo, Suspense } from "react";
 import { Radar, RadioTower, Sparkles, TrendingUp } from "lucide-react";
+import { motion } from "framer-motion";
 import { MetricCard } from "../components/common/MetricCard";
 import { LiveReportFeed } from "../components/LiveReportFeed";
+import { fadeUp, staggerContainer } from "../components/motion/variants";
 
-/**
- * Lazy-load PredictionChart so recharts (a heavy library) is only fetched when
- * the Analytics tab is first opened, keeping the initial bundle lean.
- */
 const PredictionChart = lazy(() =>
   import("../components/PredictionChart").then((m) => ({ default: m.PredictionChart }))
 );
@@ -20,12 +18,6 @@ const CHART_FALLBACK = (
   </div>
 );
 
-/**
- * Analytics page — crowd forecast charts and realtime leaderboard.
- *
- * Uses lazy-loaded PredictionChart so recharts is code-split away from the
- * main bundle and only loaded when this tab is first visited.
- */
 export const Analytics = memo(function Analytics({
   quietPlaces,
   busyPlaces,
@@ -38,20 +30,29 @@ export const Analytics = memo(function Analytics({
   onSelectPlace,
 }) {
   return (
-    <div className="page-stack">
+    <motion.div
+      className="page-stack"
+      variants={staggerContainer(0.09, 0)}
+      initial="hidden"
+      animate="show"
+    >
       {/* ── Metric cards ── */}
-      <section className="metric-grid" aria-label="Analytics metrics">
-        <MetricCard icon={Radar} label="Live sync mode" value={crowdState.realtimeModeLabel} tone="orange" />
-        <MetricCard icon={Sparkles} label="Quietest place" value={quietPlaces[0]?.place.name || "N/A"} tone="orange" />
-        <MetricCard icon={TrendingUp} label="Busiest place" value={busyPlaces[0]?.place.name || "N/A"} tone="orange" />
-        <MetricCard icon={RadioTower} label="Active report places" value={crowdState.reportStats.activePlaces} tone="orange" />
-      </section>
+      <motion.section
+        className="metric-grid"
+        aria-label="Analytics metrics"
+        variants={staggerContainer(0.07, 0.04)}
+      >
+        <MetricCard icon={Radar}      label="Live sync mode"        value={crowdState.realtimeModeLabel}              tone="orange" />
+        <MetricCard icon={Sparkles}   label="Quietest place"        value={quietPlaces[0]?.place.name || "N/A"}       tone="orange" />
+        <MetricCard icon={TrendingUp} label="Busiest place"         value={busyPlaces[0]?.place.name || "N/A"}        tone="orange" />
+        <MetricCard icon={RadioTower} label="Active report places"  value={crowdState.reportStats.activePlaces}       tone="orange" />
+      </motion.section>
 
       {/* ── Main analytics layout ── */}
-      <section className="analytics-layout">
+      <motion.section className="analytics-layout" variants={fadeUp}>
         <div className="analytics-main">
           {/* Place switcher */}
-          <div className="glass-card analytics-switcher">
+          <motion.div className="glass-card analytics-switcher" variants={fadeUp}>
             <div className="section-heading">
               <div>
                 <div className="section-kicker">Forecast focus</div>
@@ -66,20 +67,21 @@ export const Analytics = memo(function Analytics({
               aria-label="Select venue for analytics"
             >
               {analyticsCandidates.map((place) => (
-                <button
+                <motion.button
                   key={place.id}
                   type="button"
                   className={`switcher-pill ${analyticsPlace?.id === place.id ? "active" : ""}`}
                   onClick={() => onSelectAnalyticsPlace(place.id)}
                   aria-pressed={analyticsPlace?.id === place.id}
+                  whileHover={{ scale: 1.03, transition: { duration: 0.15 } }}
+                  whileTap={{ scale: 0.95 }}
                 >
                   {place.name}
-                </button>
+                </motion.button>
               ))}
             </div>
-          </div>
+          </motion.div>
 
-          {/* Live forecast chart — lazily loaded */}
           {analyticsDetail && analyticsPlace && (
             <Suspense fallback={CHART_FALLBACK}>
               <PredictionChart
@@ -94,8 +96,12 @@ export const Analytics = memo(function Analytics({
         </div>
 
         {/* ── Side panel ── */}
-        <div className="analytics-side">
-          <div className="glass-card leaderboard-card" aria-labelledby="leaderboard-heading">
+        <motion.div className="analytics-side" variants={staggerContainer(0.1, 0.15)}>
+          <motion.div
+            className="glass-card leaderboard-card"
+            aria-labelledby="leaderboard-heading"
+            variants={fadeUp}
+          >
             <div className="section-heading">
               <div>
                 <div className="section-kicker">Pressure map</div>
@@ -103,9 +109,13 @@ export const Analytics = memo(function Analytics({
                 <p>Realtime capacity ordering across the top active venues.</p>
               </div>
             </div>
-            <ul className="leaderboard-list" role="list">
+            <motion.ul
+              className="leaderboard-list"
+              role="list"
+              variants={staggerContainer(0.06, 0.05)}
+            >
               {busyPlaces.map(({ place, crowd }) => (
-                <li key={place.id} role="listitem">
+                <motion.li key={place.id} role="listitem" variants={fadeUp}>
                   <button
                     type="button"
                     className="leaderboard-item"
@@ -118,18 +128,18 @@ export const Analytics = memo(function Analytics({
                     </div>
                     <strong>{crowd.percent}%</strong>
                   </button>
-                </li>
+                </motion.li>
               ))}
-            </ul>
-          </div>
+            </motion.ul>
+          </motion.div>
 
           <LiveReportFeed
             reports={globalLiveReports}
             title="Realtime report log"
             subtitle="Track the latest signal changes powering the analytics layer."
           />
-        </div>
-      </section>
-    </div>
+        </motion.div>
+      </motion.section>
+    </motion.div>
   );
 });

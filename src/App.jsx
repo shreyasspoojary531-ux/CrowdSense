@@ -16,6 +16,7 @@
 
 import React, { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { Menu, X } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
 import { PLACES } from "./data/places";
 import { useCrowdState } from "./hooks/useCrowdState";
 import { Sidebar } from "./components/Sidebar";
@@ -24,10 +25,9 @@ import { PlaceDetail } from "./components/PlaceDetail";
 import { Toast } from "./components/common/Toast";
 import { buildImportedPlace } from "./utils/reportUtils";
 import { sanitizePlaceName } from "./utils/sanitize";
+import { pageVariant } from "./components/motion/variants";
 
 // ── Lazy-loaded pages (code-split by route) ──────────────────────────────────
-// Each page import pulls recharts and other heavy deps only when that tab is opened.
-// Pages use named exports, so we extract them via .then() for React.lazy compatibility.
 const Dashboard = lazy(() => import("./pages/Dashboard").then((m) => ({ default: m.Dashboard })));
 const ReportTab  = lazy(() => import("./pages/ReportTab").then((m) => ({ default: m.ReportTab })));
 const Explore    = lazy(() => import("./pages/Explore").then((m) => ({ default: m.Explore })));
@@ -122,11 +122,9 @@ function App() {
 
   const handleImportPlace = useCallback(
     async (placeDraft) => {
-      // Sanitize all user-supplied strings before processing.
       const trimmedName = sanitizePlaceName(placeDraft?.name || "");
       if (!trimmedName) return;
 
-      // If the place already exists, open it instead of duplicating.
       const existing = allPlaces.find(
         (p) => p.name.toLowerCase() === trimmedName.toLowerCase()
       );
@@ -139,8 +137,6 @@ function App() {
       setImporting(true);
       setImportStatus("Mapping venue profile and creating live prediction…");
 
-      // Use coordinates from placeDraft when available (map imports).
-      // Otherwise geocode via Nominatim so every place gets a map pin.
       let lat = placeDraft.lat ?? null;
       let lng = placeDraft.lng ?? null;
 
@@ -165,7 +161,6 @@ function App() {
         setImportStatus("Building live prediction model…");
       }
 
-      // Brief UX delay so the status messages are readable.
       await new Promise((resolve) => window.setTimeout(resolve, 700));
 
       const newPlace = buildImportedPlace({
@@ -265,6 +260,9 @@ function App() {
       }
     : TAB_META[activeTab];
 
+  /** Key that uniquely identifies the current view — drives AnimatePresence. */
+  const viewKey = selectedPlace ? `place-${selectedPlace.id}` : activeTab;
+
   // ─────────────────────────────────────────────────────────────────────────
 
   return (
@@ -295,10 +293,18 @@ function App() {
               >
                 {sidebarOpen ? <X size={20} aria-hidden="true" /> : <Menu size={20} aria-hidden="true" />}
               </button>
-              <div>
-                <h2>{currentMeta.title}</h2>
-                <p>{currentMeta.subtitle}</p>
-              </div>
+              <AnimatePresence mode="wait" initial={false}>
+                <motion.div
+                  key={viewKey}
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -4 }}
+                  transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+                >
+                  <h2>{currentMeta.title}</h2>
+                  <p>{currentMeta.subtitle}</p>
+                </motion.div>
+              </AnimatePresence>
             </div>
 
             <div
@@ -323,82 +329,99 @@ function App() {
 
         <div className="content-shell">
           {/* Import progress banner */}
-          {importing && (
-            <div
-              className="import-banner animate-slide-in"
-              role="status"
-              aria-live="polite"
-            >
-              <span className="status-dot" aria-hidden="true" />
-              <span>{importStatus}</span>
-            </div>
-          )}
+          <AnimatePresence>
+            {importing && (
+              <motion.div
+                className="import-banner"
+                role="status"
+                aria-live="polite"
+                initial={{ opacity: 0, y: -12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -12 }}
+                transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+              >
+                <span className="status-dot" aria-hidden="true" />
+                <span>{importStatus}</span>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-          {/* Main content area */}
-          {selectedPlace ? (
-            <PlaceDetail
-              place={selectedPlace}
-              crowdState={crowdState}
-              onBack={() => setSelectedPlace(null)}
-            />
-          ) : (
-            <Suspense fallback={PAGE_FALLBACK}>
-              {activeTab === "dashboard" && (
-                <Dashboard
-                  crowds={crowds}
-                  quietPlaces={quietPlaces}
-                  busyPlaces={busyPlaces}
-                  avgCapacity={avgCapacity}
-                  allPlaces={allPlaces}
-                  liveStatus={liveStatus}
-                  globalLiveReports={globalLiveReports}
-                  realtimeModeLabel={crowdState.realtimeModeLabel}
-                  reportStats={crowdState.reportStats}
-                  onSelectPlace={handleSelectPlace}
-                  onTabChange={handleTabChange}
-                />
-              )}
-              {activeTab === "report" && (
-                <ReportTab
-                  allPlaces={allPlaces}
+          {/* Main content area — keyed page transitions */}
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.div
+              key={viewKey}
+              variants={pageVariant}
+              initial="hidden"
+              animate="show"
+              exit="exit"
+              style={{ width: "100%" }}
+            >
+              {selectedPlace ? (
+                <PlaceDetail
+                  place={selectedPlace}
                   crowdState={crowdState}
-                  analyticsPlace={analyticsPlace}
-                  globalLiveReports={globalLiveReports}
-                  onOpenPlace={handleSelectPlace}
+                  onBack={() => setSelectedPlace(null)}
                 />
+              ) : (
+                <Suspense fallback={PAGE_FALLBACK}>
+                  {activeTab === "dashboard" && (
+                    <Dashboard
+                      crowds={crowds}
+                      quietPlaces={quietPlaces}
+                      busyPlaces={busyPlaces}
+                      avgCapacity={avgCapacity}
+                      allPlaces={allPlaces}
+                      liveStatus={liveStatus}
+                      globalLiveReports={globalLiveReports}
+                      realtimeModeLabel={crowdState.realtimeModeLabel}
+                      reportStats={crowdState.reportStats}
+                      onSelectPlace={handleSelectPlace}
+                      onTabChange={handleTabChange}
+                    />
+                  )}
+                  {activeTab === "report" && (
+                    <ReportTab
+                      allPlaces={allPlaces}
+                      crowdState={crowdState}
+                      analyticsPlace={analyticsPlace}
+                      globalLiveReports={globalLiveReports}
+                      onOpenPlace={handleSelectPlace}
+                    />
+                  )}
+                  {activeTab === "explore" && (
+                    <Explore
+                      filteredCrowds={filteredCrowds}
+                      category={category}
+                      onCategoryChange={setCategory}
+                      onSelectPlace={handleSelectPlace}
+                    />
+                  )}
+                  {activeTab === "analytics" && (
+                    <Analytics
+                      quietPlaces={quietPlaces}
+                      busyPlaces={busyPlaces}
+                      analyticsCandidates={analyticsCandidates}
+                      analyticsPlace={analyticsPlace}
+                      analyticsDetail={analyticsDetail}
+                      analyticsPlaceId={analyticsPlaceId}
+                      onSelectAnalyticsPlace={setAnalyticsPlaceId}
+                      crowdState={crowdState}
+                      globalLiveReports={globalLiveReports}
+                      onSelectPlace={handleSelectPlace}
+                    />
+                  )}
+                  {activeTab === "map" && (
+                    <MapView
+                      onImportPlace={handleImportPlace}
+                      importing={importing}
+                      crowds={crowds}
+                      onSelectPlace={handleSelectPlace}
+                    />
+                  )}
+                </Suspense>
               )}
-              {activeTab === "explore" && (
-                <Explore
-                  filteredCrowds={filteredCrowds}
-                  category={category}
-                  onCategoryChange={setCategory}
-                  onSelectPlace={handleSelectPlace}
-                />
-              )}
-              {activeTab === "analytics" && (
-                <Analytics
-                  quietPlaces={quietPlaces}
-                  busyPlaces={busyPlaces}
-                  analyticsCandidates={analyticsCandidates}
-                  analyticsPlace={analyticsPlace}
-                  analyticsDetail={analyticsDetail}
-                  analyticsPlaceId={analyticsPlaceId}
-                  onSelectAnalyticsPlace={setAnalyticsPlaceId}
-                  crowdState={crowdState}
-                  globalLiveReports={globalLiveReports}
-                  onSelectPlace={handleSelectPlace}
-                />
-              )}
-              {activeTab === "map" && (
-                <MapView
-                  onImportPlace={handleImportPlace}
-                  importing={importing}
-                  crowds={crowds}
-                  onSelectPlace={handleSelectPlace}
-                />
-              )}
-            </Suspense>
-          )}
+            </motion.div>
+          </AnimatePresence>
         </div>
       </main>
 

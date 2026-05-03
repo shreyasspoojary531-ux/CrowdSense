@@ -2840,3 +2840,17 @@ button {
     justify-content: center;
   }
 }
+
+/* ── Accessibility: respect user motion preferences ────────────────────────
+   When the OS/browser has reduced-motion enabled, strip out all Framer Motion
+   and CSS keyframe animations so the UI remains fully functional but static. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

@@ -9,4 +9,10 @@ export default defineConfig({
     port: 5000,
     allowedHosts: true,
   },
+  resolve: {
+    dedupe: ['react', 'react-dom', 'framer-motion'],
+  },
+  optimizeDeps: {
+    include: ['framer-motion'],
+  },
 })

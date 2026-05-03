@@ -1,0 +1,68 @@
+You are a senior frontend engineer and motion design expert.
+
+Your task: Enhance my existing website by adding ultra-smooth, premium, modern animations across the entire UI.
+
+STRICT RULES:
+- DO NOT change any existing business logic, functionality, API calls, routing, or state management.
+- DO NOT break responsiveness or accessibility.
+- Preserve all current features exactly as they are.
+- Only enhance visual experience through animations.
+
+ANIMATION GOALS:
+- Make the UI feel fluid, fast, and premium (like top-tier apps).
+- Every interaction should feel responsive and natural.
+- Avoid excessive or distracting animations — focus on smoothness and intention.
+
+IMPLEMENTATION DETAILS:
+- Use performant animation libraries (prefer Framer Motion for React or GSAP if needed).
+- Use GPU-accelerated properties (transform, opacity).
+- Avoid layout thrashing (no unnecessary reflows).
+- Keep animations under 300–500ms unless intentional.
+- Use easing functions (ease-in-out, cubic-bezier) for natural motion.
+
+ADD ANIMATIONS TO:
+1. Page transitions:
+   - Smooth fade + slide transitions between routes
+   - No abrupt jumps
+
+2. Component entry:
+   - Fade-in + slight upward motion
+   - Staggered animations for lists/grids
+
+3. Hover effects:
+   - Subtle scale (1.02–1.05)
+   - Smooth shadow/glow transitions
+   - Button micro-interactions
+
+4. Click/press feedback:
+   - Slight scale-down (0.95–0.98)
+   - Instant tactile response
+
+5. Loading states:
+   - Skeleton loaders or shimmer effects
+   - Smooth transitions when content appears
+
+6. Scroll animations:
+   - Reveal elements on scroll (fade + translate)
+   - Use intersection observer for performance
+
+7. Navigation:
+   - Smooth dropdowns, modals, and menus
+   - Animate height/opacity cleanly
+
+8. Form interactions:
+   - Smooth focus states
+   - Error/success animations (shake, glow, etc.)
+
+PERFORMANCE:
+- Ensure animations do not impact FPS
+- Lazy-load animation-heavy components if needed
+- Respect prefers-reduced-motion for accessibility
+
+OUTPUT:
+- Modify existing code with minimal intrusion
+- Clearly show where animations are added
+- Keep code clean, modular, and maintainable
+
+FINAL GOAL:
+Make the website feel like a high-end product (Apple-level smoothness), not an over-animated mess.
